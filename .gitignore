@@ -1,4 +1,3 @@
-./config/.env
 /.env
 /.env.local
 /.env.development.local
@@ -6,3 +5,4 @@
 /.env.production.local
 /.env.development
 /.env.test
+config/.env
