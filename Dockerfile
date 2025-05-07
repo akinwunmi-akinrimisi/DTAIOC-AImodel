@@ -4,13 +4,11 @@ FROM nikolaik/python-nodejs:python3.12-nodejs22
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and install Node.js dependencies
-COPY package.json .
-RUN npm install
+# Copy package.json and requirements.txt
+COPY package.json requirements.txt ./
 
-# Copy requirements.txt and install Python dependencies
-COPY requirements.txt .
-RUN python3.12 -m pip install --no-cache-dir -r requirements.txt
+# Install Node.js and Python dependencies
+RUN npm install && python3.12 -m pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application
 COPY . .
