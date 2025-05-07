@@ -1,15 +1,14 @@
+require('dotenv').config();
 const express = require('express');
-const { execSync } = require('child_process');
+const { exec } = require('child_process');
+const util = require('util');
+const PinataClient = require('@pinata/sdk');
 const { Pool } = require('pg');
-const pinataSDK = require('@pinata/sdk');
-const dotenv = require('dotenv');
-const path = require('path');
 
-// Load environment variables
-dotenv.config();
+const execPromise = util.promisify(exec);
 
 const app = express();
-app.use(express.json({ strict: true }));
+app.use(express.json());
 
 // Database configuration
 const pool = new Pool({
@@ -21,112 +20,119 @@ const pool = new Pool({
 });
 
 // Pinata configuration
-const pinata = new pinataSDK(process.env.PINATA_API_KEY);
+const pinataJwt = process.env.PINATA_JWT;
+console.error('Checking PINATA_JWT:', pinataJwt ? 'Set' : 'Not set');
+let pinata;
+try {
+  if (!pinataJwt) {
+    throw new Error('PINATA_JWT environment variable is not set');
+  }
+  pinata = new PinataClient({ pinataJWTKey: pinataJwt });
+  console.error('Pinata client initialized successfully');
+} catch (error) {
+  console.error('Error initializing Pinata client:', error.message);
+}
 
-// Endpoint to create a new game
+// Generate questions endpoint
 app.post('/games', async (req, res) => {
   const { basename, stakeAmount, playerLimit, duration } = req.body;
 
   try {
-    // Validate input
-    if (!basename || !stakeAmount || !playerLimit || !duration) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    // Fetch tweets (mocked for now)
+    const tweets = [
+      { text: 'Just attended the AI Summit 2025 in San Francisco! #AI #Tech', created_at: '2025-04-15T10:30:00.000Z' },
+      { text: 'Excited to watch the SpaceX Starship launch tomorrow! 🚀 @SpaceX', created_at: '2025-04-20T14:45:00.000Z' }
+    ];
+
+    // Escape single quotes in JSON string
+    const tweetsJson = JSON.stringify(tweets).replace(/'/g, "\\'");
+
+    // Run question generator
+    console.error('Executing question_generator.py with tweets:', tweetsJson);
+    const { stdout, stderr } = await execPromise(`python ai/question_generator.py '${tweetsJson}'`);
+    if (stderr) {
+      console.error('Question generator stderr:', stderr);
+    }
+    console.error('Question generator stdout:', stdout);
+
+    const questions = JSON.parse(stdout);
+    if (!Array.isArray(questions) || questions.length === 0) {
+      throw new Error('No questions generated');
     }
 
-    // Generate questions using Python script
-    let questions;
-    try {
-      const tweets = [
-        { text: 'Just attended the AI Summit 2025 in San Francisco! #AI #Tech', created_at: '2025-04-15T10:30:00.000Z' },
-        { text: 'Excited to watch the SpaceX Starship launch tomorrow! 🚀 @SpaceX', created_at: '2025-04-20T14:45:00.000Z' },
-        // Add more tweets as needed
-      ];
-      // Escape single quotes in JSON string
-      const tweetJson = JSON.stringify(tweets).replace(/'/g, "'\\''");
-      const command = `python ai/question_generator.py '${tweetJson}'`;
-      console.log(`Executing command: ${command}`);
-      const output = execSync(command, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
-      console.log(`Python script output: ${output}`);
-      questions = JSON.parse(output);
-    } catch (error) {
-      console.error(`Python script error: ${error.message}`);
-      console.error(`stderr: ${error.stderr || 'No stderr'}`);
-      console.error(`stdout: ${error.stdout || 'No stdout'}`);
-      return res.status(500).json({
-        error: `Question generator failed: ${error.message}`,
-        stderr: error.stderr || 'No stderr',
-        stdout: error.stdout || 'No stdout',
-      });
-    }
+    // Extract question hashes
+    const questionHashes = questions.map(q => q.hash);
 
-    // Validate questions
-    if (!Array.isArray(questions) || questions.length !== 15) {
-      return res.status(500).json({ error: 'Invalid question format or count' });
+    // Store game in database
+    const gameResult = await pool.query(
+      'INSERT INTO games (basename, stake_amount, player_limit, duration, status) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+      [basename, stakeAmount, playerLimit, duration, 'active']
+    );
+    const gameId = gameResult.rows[0].id;
+
+    // Store questions in database
+    for (const q of questions) {
+      await pool.query(
+        'INSERT INTO questions (game_id, question_text, options, correct_answer, hash) VALUES ($1, $2, $3, $4, $5)',
+        [gameId, q.question, q.options, q.correct_answer, q.hash]
+      );
     }
 
     // Upload questions to Pinata
-    let ipfsCid;
-    try {
-      const pinataResponse = await pinata.pinJSONToIPFS(questions);
-      ipfsCid = pinataResponse.IpfsHash;
-    } catch (error) {
-      console.error(`Pinata error: ${error.message}`);
-      return res.status(500).json({ error: `Pinata upload failed: ${error.message}` });
+    if (!pinata) {
+      throw new Error('Pinata client not initialized');
     }
+    console.error('Uploading questions to Pinata');
+    const pinataResult = await pinata.pinJSONToIPFS({ questions });
+    console.error('Pinata upload successful, CID:', pinataResult.IpfsHash);
 
-    // Store game in database
-    try {
-      const query = `
-        INSERT INTO games (basename, stake_amount, player_limit, duration, ipfs_cid, question_hashes)
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING id
-      `;
-      const questionHashes = questions.map(q => q.hash);
-      const values = [basename, stakeAmount, playerLimit, duration, ipfsCid, questionHashes];
-      const result = await pool.query(query, values);
-      const gameId = result.rows[0].id;
-
-      return res.json({ gameId, questionHashes, ipfsCid });
-    } catch (error) {
-      console.error(`Database error: ${error.message}`);
-      return res.status(500).json({ error: `Database error: ${error.message}` });
-    }
+    res.json({
+      gameId,
+      questionHashes,
+      ipfsCid: pinataResult.IpfsHash
+    });
   } catch (error) {
-    console.error(`Unexpected error: ${error.message}`);
-    return res.status(500).json({ error: `Unexpected error: ${error.message}` });
+    console.error('Error in /games endpoint:', error.message);
+    res.status(500).json({
+      error: `Failed to create game: ${error.message}`,
+      stderr: error.stderr || '',
+      stdout: error.stdout || ''
+    });
   }
 });
 
-// Endpoint to submit answers
+// Submit answers endpoint
 app.post('/games/:gameId/submit', async (req, res) => {
   const { gameId } = req.params;
   const { stage, answerHashes } = req.body;
 
   try {
-    // Fetch game data
-    const gameQuery = 'SELECT question_hashes FROM games WHERE id = $1';
-    const gameResult = await pool.query(gameQuery, [gameId]);
-    if (gameResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Game not found' });
+    // Fetch correct answers
+    const questionsResult = await pool.query('SELECT hash, correct_answer FROM questions WHERE game_id = $1', [gameId]);
+    const correctHashes = questionsResult.rows.map(q => q.hash);
+
+    // Calculate score
+    let score = 0;
+    for (let i = 0; i < answerHashes.length; i++) {
+      if (answerHashes[i] === correctHashes[i]) {
+        score += 1;
+      }
     }
 
-    // Call answer validator
-    try {
-      const command = `python ai/answer_validator.py '${JSON.stringify({ gameId, stage, answerHashes })}'`;
-      const output = execSync(command, { encoding: 'utf8' });
-      const score = JSON.parse(output).score;
-      return res.json({ score });
-    } catch (error) {
-      console.error(`Answer validator error: ${error.message}`);
-      return res.status(500).json({ error: `Answer validator failed: ${error.message}` });
-    }
+    // Store submission
+    await pool.query(
+      'INSERT INTO submissions (game_id, stage, score, answer_hashes) VALUES ($1, $2, $3, $4)',
+      [gameId, stage, score, answerHashes]
+    );
+
+    res.json({ score });
   } catch (error) {
-    console.error(`Unexpected error: ${error.message}`);
-    return res.status(500).json({ error: `Unexpected error: ${error.message}` });
+    console.error('Error in /submit endpoint:', error.message);
+    res.status(500).json({ error: `Failed to submit answers: ${error.message}` });
   }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
