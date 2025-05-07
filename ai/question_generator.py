@@ -4,15 +4,31 @@ import json
 import re
 import time
 from hashlib import sha256
-from openai import OpenAI
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables first
 load_dotenv()
+
+# Debug environment variables to see what might be affecting the OpenAI client
+print("Checking environment variables for proxy settings:", file=sys.stderr)
+for key, value in os.environ.items():
+    if "PROXY" in key.upper() or "OPENAI" in key.upper():
+        print(f"{key}: {value}", file=sys.stderr)
+
+# Remove any proxy-related environment variables that might be causing issues
+proxy_related_keys = [key for key in os.environ.keys() if "PROXY" in key.upper()]
+for key in proxy_related_keys:
+    print(f"Removing environment variable: {key}", file=sys.stderr)
+    del os.environ[key]
+
+# Check API key after cleaning environment
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     print("Error: OPENAI_API_KEY not set in environment", file=sys.stderr)
     sys.exit(1)
+
+# Now import OpenAI after cleaning the environment
+from openai import OpenAI
 
 def clean_json_response(content):
     """Remove Markdown code fences and leading/trailing text from JSON response."""
@@ -26,9 +42,15 @@ class QuestionGenerator:
     def __init__(self):
         try:
             # Initialize OpenAI client with only the api_key parameter
+            # Use a clean initialization without any extra parameters
+            print("Initializing OpenAI client with API key only", file=sys.stderr)
             self.client = OpenAI(api_key=api_key)
+            print("OpenAI client initialized successfully", file=sys.stderr)
         except Exception as e:
             print(f"Error initializing OpenAI client: {str(e)}", file=sys.stderr)
+            # Print more details about the exception
+            import traceback
+            traceback.print_exc(file=sys.stderr)
             sys.exit(1)
 
     def generate_questions(self, tweets, num_questions=15, max_retries=3):
@@ -72,12 +94,14 @@ Remember: I need EXACTLY {num_questions} questions. Create additional relevant q
 """
         for attempt in range(max_retries):
             try:
+                print(f"Attempt {attempt + 1}: Sending request to OpenAI", file=sys.stderr)
                 response = self.client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=3000,
                     temperature=0.7
                 )
+                print("Successfully received response from OpenAI", file=sys.stderr)
                 content = response.choices[0].message.content.strip()
                 try:
                     cleaned_content = clean_json_response(content)
@@ -134,6 +158,9 @@ Return ONLY a JSON array with exactly {missing} question objects.
 
             except Exception as e:
                 print(f"Error on attempt {attempt + 1}: {str(e)}", file=sys.stderr)
+                # Print more details about the exception
+                import traceback
+                traceback.print_exc(file=sys.stderr)
                 if attempt == max_retries - 1:
                     return questions[:num_questions] if 'questions' in locals() and len(questions) >= num_questions else []
                 time.sleep(2)
@@ -142,19 +169,28 @@ Return ONLY a JSON array with exactly {missing} question objects.
 
 if __name__ == "__main__":
     try:
+        print("Starting question generator script", file=sys.stderr)
         if len(sys.argv) > 1:
             tweets = json.loads(sys.argv[1])
+            print(f"Loaded {len(tweets)} tweets from command line argument", file=sys.stderr)
         else:
             try:
                 with open("ai/mock_tweets.json", "r") as f:
                     tweets = json.load(f)
+                    print(f"Loaded {len(tweets)} tweets from mock_tweets.json", file=sys.stderr)
             except FileNotFoundError:
                 print("Error: mock_tweets.json not found", file=sys.stderr)
                 sys.exit(1)
 
+        print("Creating QuestionGenerator instance", file=sys.stderr)
         generator = QuestionGenerator()
+        print("Generating questions", file=sys.stderr)
         questions = generator.generate_questions(tweets)
+        print(f"Generated {len(questions)} questions", file=sys.stderr)
         print(json.dumps(questions, indent=2))
     except Exception as e:
         print(f"Main error: {str(e)}", file=sys.stderr)
+        # Print more details about the exception
+        import traceback
+        traceback.print_exc(file=sys.stderr)
         sys.exit(1)
