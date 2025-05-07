@@ -8,7 +8,9 @@ WORKDIR /app
 COPY package.json requirements.txt ./
 
 # Install Node.js and Python dependencies
-RUN npm install && python3.12 -m pip install --no-cache-dir -r requirements.txt
+RUN npm install && \
+    pip cache purge && \
+    python3.12 -m pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application
 COPY . .
@@ -18,3 +20,5 @@ EXPOSE 3000
 
 # Start the server
 CMD ["node", "server.js"]
+
+

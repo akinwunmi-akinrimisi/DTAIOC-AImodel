@@ -40,9 +40,9 @@ def clean_json_response(content):
 class QuestionGenerator:
     def __init__(self):
         try:
-            # Create custom httpx client with no proxies
-            print("Creating custom httpx.Client with proxies=None", file=sys.stderr)
-            custom_client = httpx.Client(proxies=None)
+            # Create custom httpx client without proxies parameter
+            print("Creating custom httpx.Client", file=sys.stderr)
+            custom_client = httpx.Client()
             # Initialize OpenAI client with custom httpx client
             print("Initializing OpenAI client with API key and custom httpx client", file=sys.stderr)
             self.client = OpenAI(api_key=api_key, http_client=custom_client)
