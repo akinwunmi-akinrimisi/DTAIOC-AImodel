@@ -6,10 +6,10 @@ const dotenv = require('dotenv');
 const path = require('path');
 
 // Load environment variables
-dotenv.config({ path: path.join(__dirname, 'config', '.env') });
+dotenv.config();
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ strict: true }));
 
 // Database configuration
 const pool = new Pool({
@@ -39,9 +39,11 @@ app.post('/games', async (req, res) => {
       const tweets = [
         { text: 'Just attended the AI Summit 2025 in San Francisco! #AI #Tech', created_at: '2025-04-15T10:30:00.000Z' },
         { text: 'Excited to watch the SpaceX Starship launch tomorrow! 🚀 @SpaceX', created_at: '2025-04-20T14:45:00.000Z' },
-        // ... (other tweets as in curl)
+        // Add more tweets as needed
       ];
-      const command = `python ai/question_generator.py '${JSON.stringify(tweets)}'`;
+      // Escape single quotes in JSON string
+      const tweetJson = JSON.stringify(tweets).replace(/'/g, "'\\''");
+      const command = `python ai/question_generator.py '${tweetJson}'`;
       console.log(`Executing command: ${command}`);
       const output = execSync(command, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
       console.log(`Python script output: ${output}`);

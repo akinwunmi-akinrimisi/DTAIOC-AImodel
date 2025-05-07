@@ -7,15 +7,12 @@ from hashlib import sha256
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# Load environment variables (uses Render's env vars if no .env file)
+# Load environment variables
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
     print("Error: OPENAI_API_KEY not set in environment", file=sys.stderr)
     sys.exit(1)
-
-# Flush stderr to ensure errors are captured
-sys.stderr.flush()
 
 def clean_json_response(content):
     """Remove Markdown code fences and leading/trailing text from JSON response."""
@@ -28,6 +25,7 @@ def clean_json_response(content):
 class QuestionGenerator:
     def __init__(self):
         try:
+            # Initialize OpenAI client without proxies
             self.client = OpenAI(api_key=api_key)
         except Exception as e:
             print(f"Error initializing OpenAI client: {str(e)}", file=sys.stderr)
@@ -86,7 +84,6 @@ Remember: I need EXACTLY {num_questions} questions. Create additional relevant q
                     questions = json.loads(cleaned_content)
                 except (ValueError, json.JSONDecodeError) as e:
                     print(f"Invalid JSON response on attempt {attempt + 1}: {str(e)}", file=sys.stderr)
-                    print(f"Raw content: {content[:200]}...", file=sys.stderr)
                     if attempt == max_retries - 1:
                         raise ValueError(f"Failed to parse JSON after {max_retries} attempts: {str(e)}")
                     time.sleep(2)
@@ -100,11 +97,9 @@ Remember: I need EXACTLY {num_questions} questions. Create additional relevant q
                     continue
 
                 if len(questions) < num_questions:
-                    print(f"Warning: Only got {len(questions)} questions, expected {num_questions}", file=sys.stderr)
-                    if num_questions - len(questions) <= 2 and attempt < max_retries - 1:
-                        missing = num_questions - len(questions)
-                        print(f"Generating {missing} additional questions...", file=sys.stderr)
-                        additional_prompt = f"""
+                    missing = num_questions - len(questions)
+                    print(f"Generating {missing} additional questions...", file=sys.stderr)
+                    additional_prompt = f"""
 Based on these tweets, generate exactly {missing} more trivia questions with 4 multiple-choice answers each.
 Make them different from these existing questions:
 {json.dumps(questions, indent=2)}
@@ -114,64 +109,21 @@ Tweets:
 
 Return ONLY a JSON array with exactly {missing} question objects.
 """
-                        additional_response = self.client.chat.completions.create(
-                            model="gpt-4o-mini",
-                            messages=[{"role": "user", "content": additional_prompt}],
-                            max_tokens=1000
-                        )
-                        additional_content = additional_response.choices[0].message.content.strip()
-                        try:
-                            additional_content = clean_json_response(additional_content)
-                            additional_questions = json.loads(additional_content)
-                            questions.extend(additional_questions)
-                            print(f"Successfully added {len(additional_questions)} questions", file=sys.stderr)
-                        except Exception as e:
-                            print(f"Failed to add additional questions: {e}", file=sys.stderr)
-
-                    if len(questions) < num_questions and attempt == max_retries - 1:
-                        missing = num_questions - len(questions)
-                        print(f"Generating {missing} synthetic questions...", file=sys.stderr)
-                        topics = ["AI", "Blockchain", "Crypto", "NFTs", "Technology", "Fitness", "Travel"]
-                        for i in range(missing):
-                            topic = topics[i % len(topics)]
-                            questions.append({
-                                "question": f"Based on the tweets, which {topic}-related activity might the user be interested in?",
-                                "options": [
-                                    f"{topic} conference",
-                                    f"{topic} development",
-                                    f"{topic} investment",
-                                    f"{topic} community"
-                                ],
-                                "correct_answer": i % 4,
-                                "hash": ""
-                            })
+                    additional_response = self.client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[{"role": "user", "content": additional_prompt}],
+                        max_tokens=1000
+                    )
+                    additional_content = additional_response.choices[0].message.content.strip()
+                    try:
+                        additional_content = clean_json_response(additional_content)
+                        additional_questions = json.loads(additional_content)
+                        questions.extend(additional_questions)
+                    except Exception as e:
+                        print(f"Failed to add additional questions: {e}", file=sys.stderr)
 
                 if len(questions) > num_questions:
-                    print(f"Trimming from {len(questions)} to {num_questions} questions", file=sys.stderr)
                     questions = questions[:num_questions]
-
-                invalid_questions = [
-                    i for i, q in enumerate(questions)
-                    if not (isinstance(q, dict) and
-                           "question" in q and
-                           "options" in q and len(q["options"]) == 4 and
-                           "correct_answer" in q and 0 <= q["correct_answer"] <= 3)
-                ]
-                if invalid_questions:
-                    print(f"Error on attempt {attempt + 1}: Invalid format in questions {invalid_questions}", file=sys.stderr)
-                    if attempt == max_retries - 1:
-                        for i in invalid_questions:
-                            if i < len(questions):
-                                q = questions[i]
-                                if "question" not in q:
-                                    q["question"] = f"What topic was mentioned in the user's tweets? (Question {i+1})"
-                                if "options" not in q or len(q["options"]) != 4:
-                                    q["options"] = ["AI", "Blockchain", "NFTs", "Travel"]
-                                if "correct_answer" not in q or not (0 <= q["correct_answer"] <= 3):
-                                    q["correct_answer"] = 0
-                    else:
-                        time.sleep(2)
-                        continue
 
                 for q in questions:
                     correct_answer = q["options"][q["correct_answer"]]
@@ -182,15 +134,8 @@ Return ONLY a JSON array with exactly {missing} question objects.
 
             except Exception as e:
                 print(f"Error on attempt {attempt + 1}: {str(e)}", file=sys.stderr)
-                sys.stderr.flush()
                 if attempt == max_retries - 1:
-                    if 'questions' in locals() and isinstance(questions, list) and questions:
-                        for q in questions:
-                            if "hash" not in q:
-                                correct_answer = q["options"][q["correct_answer"]]
-                                q["hash"] = "0x" + sha256((q["question"] + correct_answer).encode()).hexdigest()
-                        return questions[:num_questions] if len(questions) >= num_questions else questions
-                    return []
+                    return questions[:num_questions] if 'questions' in locals() and len(questions) >= num_questions else []
                 time.sleep(2)
 
         return []
@@ -205,9 +150,6 @@ if __name__ == "__main__":
                     tweets = json.load(f)
             except FileNotFoundError:
                 print("Error: mock_tweets.json not found", file=sys.stderr)
-                sys.exit(1)
-            except json.JSONDecodeError:
-                print("Error: Invalid JSON in mock_tweets.json", file=sys.stderr)
                 sys.exit(1)
 
         generator = QuestionGenerator()
