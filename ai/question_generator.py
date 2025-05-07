@@ -25,7 +25,7 @@ def clean_json_response(content):
 class QuestionGenerator:
     def __init__(self):
         try:
-            # Initialize OpenAI client without proxies
+            # Initialize OpenAI client with only the api_key parameter
             self.client = OpenAI(api_key=api_key)
         except Exception as e:
             print(f"Error initializing OpenAI client: {str(e)}", file=sys.stderr)
