@@ -1,0 +1,30 @@
+{
+  "name": "dtaioc-aimodel",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akinwunmi-akinrimisi/DTAIOC-AImodel.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/akinwunmi-akinrimisi/DTAIOC-AImodel/issues"
+  },
+  "homepage": "https://github.com/akinwunmi-akinrimisi/DTAIOC-AImodel#readme",
+  "dependencies": {
+    "dotenv": "^16.5.0",
+    "ethers": "^6.13.7",
+    "express": "^5.1.0",
+    "form-data": "^4.0.2",
+    "node-fetch": "^2.7.0",
+    "pg": "^8.15.6",
+    "rate-limiter-flexible": "^7.1.0"
+  }
+}

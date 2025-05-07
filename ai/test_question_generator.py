@@ -2,7 +2,6 @@ from question_generator import QuestionGenerator
 import json
 
 def test_generate_questions():
-    # Load mock tweets
     try:
         with open("ai/mock_tweets.json", "r") as f:
             tweets = json.load(f)
@@ -17,11 +16,10 @@ def test_generate_questions():
         print("No tweets to generate questions")
         return
 
-    # Generate questions
     generator = QuestionGenerator()
     questions = generator.generate_questions(tweets)
     print(f"Generated {len(questions)} questions:")
-    for q in questions[:3]:  # Show first 3 questions
+    for q in questions[:3]:
         print(json.dumps(q, indent=2))
     assert len(questions) == 15, f"Expected 15 questions, got {len(questions)}"
     assert all(
