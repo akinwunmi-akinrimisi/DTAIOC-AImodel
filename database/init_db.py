@@ -16,27 +16,43 @@ def init_db():
         )
         cursor = conn.cursor()
 
+        # Create games table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS games (
                 id SERIAL PRIMARY KEY,
-                creator_basename VARCHAR(255) NOT NULL,
+                basename VARCHAR(255) NOT NULL,
                 stake_amount INTEGER NOT NULL,
                 player_limit INTEGER NOT NULL,
                 duration INTEGER NOT NULL,
-                ipfs_cid VARCHAR(255)
+                status VARCHAR(50) NOT NULL,
+                ipfs_cid VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
 
+        # Create questions table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS questions (
                 id SERIAL PRIMARY KEY,
-                game_id INTEGER REFERENCES games(id),
-                stage INTEGER NOT NULL,
-                question TEXT NOT NULL,
-                options JSONB NOT NULL,
+                game_id INTEGER REFERENCES games(id) ON DELETE CASCADE,
+                question_text TEXT NOT NULL,
+                options TEXT[] NOT NULL,
                 correct_answer INTEGER NOT NULL,
                 hash VARCHAR(66) NOT NULL,
-                ipfs_cid VARCHAR(255)
+                ipfs_cid VARCHAR(255),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+
+        # Create submissions table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS submissions (
+                id SERIAL PRIMARY KEY,
+                game_id INTEGER REFERENCES games(id) ON DELETE CASCADE,
+                stage INTEGER NOT NULL,
+                score INTEGER NOT NULL,
+                answer_hashes TEXT[] NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
 
@@ -45,8 +61,10 @@ def init_db():
     except Exception as e:
         print(f"Error initializing database: {e}")
     finally:
-        cursor.close()
-        conn.close()
+        if 'cursor' in locals():
+            cursor.close()
+        if 'conn' in locals():
+            conn.close()
 
 if __name__ == "__main__":
     init_db()
