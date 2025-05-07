@@ -10,14 +10,52 @@ const execPromise = util.promisify(exec);
 const app = express();
 app.use(express.json());
 
-// Database configuration
+// Database configuration with SSL
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
+
+// Initialize database schema
+async function initializeDatabase() {
+  try {
+    console.error('Running database initialization script');
+    const { stdout, stderr } = await execPromise('python database/init_db.py');
+    console.error('Database init stdout:', stdout);
+    if (stderr) {
+      console.error('Database init stderr:', stderr);
+    }
+  } catch (error) {
+    console.error('Error running init_db.py:', error.message);
+  }
+}
+initializeDatabase();
+
+// Verify database connection
+async function verifyDatabaseConnection() {
+  try {
+    const client = await pool.connect();
+    console.error('Database connection successful');
+    console.error('DB Config:', {
+      user: process.env.DB_USER,
+      host: process.env.DB_HOST,
+      database: process.env.DB_NAME,
+      port: process.env.DB_PORT
+    });
+    const res = await client.query('SELECT NOW()');
+    console.error('Database time:', res.rows[0].now);
+    client.release();
+  } catch (error) {
+    console.error('Database connection error:', error.message);
+  }
+}
+verifyDatabaseConnection();
 
 // Pinata configuration
 const pinataJwt = process.env.PINATA_JWT;
@@ -64,6 +102,7 @@ app.post('/games', async (req, res) => {
     const questionHashes = questions.map(q => q.hash);
 
     // Store game in database
+    console.error('Inserting game into database');
     const gameResult = await pool.query(
       'INSERT INTO games (basename, stake_amount, player_limit, duration, status) VALUES ($1, $2, $3, $4, $5) RETURNING id',
       [basename, stakeAmount, playerLimit, duration, 'active']
@@ -71,6 +110,7 @@ app.post('/games', async (req, res) => {
     const gameId = gameResult.rows[0].id;
 
     // Store questions in database
+    console.error('Inserting questions into database');
     for (const q of questions) {
       await pool.query(
         'INSERT INTO questions (game_id, question_text, options, correct_answer, hash) VALUES ($1, $2, $3, $4, $5)',
@@ -108,6 +148,7 @@ app.post('/games/:gameId/submit', async (req, res) => {
 
   try {
     // Fetch correct answers
+    console.error('Fetching questions for gameId:', gameId);
     const questionsResult = await pool.query('SELECT hash, correct_answer FROM questions WHERE game_id = $1', [gameId]);
     const correctHashes = questionsResult.rows.map(q => q.hash);
 
@@ -120,6 +161,7 @@ app.post('/games/:gameId/submit', async (req, res) => {
     }
 
     // Store submission
+    console.error('Inserting submission for gameId:', gameId);
     await pool.query(
       'INSERT INTO submissions (game_id, stage, score, answer_hashes) VALUES ($1, $2, $3, $4)',
       [gameId, stage, score, answerHashes]
