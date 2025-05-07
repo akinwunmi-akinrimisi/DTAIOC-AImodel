@@ -6,3 +6,7 @@
 /.env.development
 /.env.test
 config/.env
+
+node_modules/
+venv/
+config/.env

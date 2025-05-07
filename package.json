@@ -1,11 +1,11 @@
 {
   "name": "dtaioc-aimodel",
   "version": "1.0.0",
-  "description": "",
+  "description": "Decentralized Trivia Game Backend",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "postinstall": "pip install -r requirements.txt"
   },
   "repository": {
     "type": "git",
@@ -19,12 +19,12 @@
   },
   "homepage": "https://github.com/akinwunmi-akinrimisi/DTAIOC-AImodel#readme",
   "dependencies": {
-    "dotenv": "^16.5.0",
-    "ethers": "^6.13.7",
-    "express": "^5.1.0",
-    "form-data": "^4.0.2",
-    "node-fetch": "^2.7.0",
+    "express": "^4.17.1",
     "pg": "^8.15.6",
-    "rate-limiter-flexible": "^7.1.0"
+    "ethers": "^5.6.8",
+    "rate-limiter-flexible": "^7.1.0",
+    "node-fetch": "^2.7.0",
+    "form-data": "^4.0.2",
+    "dotenv": "^16.5.0"
   }
 }
