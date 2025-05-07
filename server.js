@@ -55,7 +55,12 @@ app.post('/games', async (req, res) => {
         }
 
         const tweets = JSON.parse(execSync('cat ai/mock_tweets.json').toString());
-        const questionsJson = execSync(`python ai/question_generator.py '${JSON.stringify(tweets)}'`).toString();
+        let questionsJson;
+        try {
+            questionsJson = execSync(`python ai/question_generator.py '${JSON.stringify(tweets)}'`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+        } catch (error) {
+            return res.status(500).json({ error: `Question generator failed: ${error.message}, stderr: ${error.stderr}` });
+        }
         const questions = JSON.parse(questionsJson);
 
         if (questions.length !== 15) {
