@@ -7,18 +7,11 @@ from hashlib import sha256
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# Explicitly load config/.env
-env_path = os.path.join("config", ".env")
-if not os.path.exists(env_path):
-    print(f"Error: {env_path} does not exist", file=sys.stderr)
-    sys.exit(1)
-success = load_dotenv(env_path)
-if not success:
-    print(f"Error: Failed to load {env_path}", file=sys.stderr)
-    sys.exit(1)
+# Load environment variables (uses Render's env vars if no .env file)
+load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 if not api_key:
-    print("Error: OPENAI_API_KEY not set in .env", file=sys.stderr)
+    print("Error: OPENAI_API_KEY not set in environment", file=sys.stderr)
     sys.exit(1)
 
 # Flush stderr to ensure errors are captured
