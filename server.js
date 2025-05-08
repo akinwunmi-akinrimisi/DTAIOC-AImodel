@@ -214,7 +214,7 @@ app.post('/games', async (req, res) => {
     }
 
     console.error(`Writing tweets to ${tempFilePath}`);
-    fs.writeFileSync(tempFilePath, JSON.stringify(tweets));
+    fs.writeFileSync(tempFilePath, JSON.stringify({ username, tweets }));
   } catch (error) {
     if (error.data && error.data.status === 429) {
       console.error('Rate limit exceeded, falling back to backup tweet files');
@@ -326,6 +326,22 @@ app.post('/games/:gameId/submit', async (req, res) => {
   } catch (error) {
     console.error('Error in /submit endpoint:', error.message, error.stack);
     res.status(500).json({ error: `Failed to submit answers: ${error.message}` });
+  }
+});
+
+// Get questions endpoint
+app.get('/games/:gameId/questions', async (req, res) => {
+  const { gameId } = req.params;
+  try {
+    console.error('Fetching questions for gameId:', gameId);
+    const questionsResult = await pool.query(
+      'SELECT question_text AS question, options, hash FROM questions WHERE game_id = $1',
+      [gameId]
+    );
+    res.json(questionsResult.rows);
+  } catch (error) {
+    console.error('Error in /questions endpoint:', error.message, error.stack);
+    res.status(500).json({ error: `Failed to fetch questions: ${error.message}` });
   }
 });
 
