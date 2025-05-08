@@ -4,11 +4,14 @@ const { exec } = require('child_process');
 const util = require('util');
 const PinataClient = require('@pinata/sdk');
 const { Pool } = require('pg');
+const cors = require('cors');
+const { TwitterApi } = require('twitter-api-v2');
 
 const execPromise = util.promisify(exec);
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 // Database configuration with SSL
 const pool = new Pool({
@@ -71,16 +74,107 @@ try {
   console.error('Error initializing Pinata client:', error.message);
 }
 
-// Generate questions endpoint
-app.post('/games', async (req, res) => {
-  const { basename, stakeAmount, playerLimit, duration } = req.body;
+// Twitter API configuration
+const twitterClient = new TwitterApi({
+  clientId: process.env.X_CLIENT_ID,
+  clientSecret: process.env.X_CLIENT_SECRET,
+});
+
+// Store OAuth state and tokens temporarily (in-memory for simplicity; use Redis in production)
+const oauthStates = new Map();
+const userTokens = new Map();
+
+// OAuth 2.0 login endpoint
+app.get('/auth/login', (req, res) => {
+  const { username } = req.query;
+  if (!username) {
+    return res.status(400).json({ error: 'Username is required' });
+  }
+
+  // Generate OAuth 2.0 URL
+  const { url, codeVerifier, state } = twitterClient.generateOAuth2AuthLink(
+    process.env.X_REDIRECT_URI,
+    { scope: ['tweet.read', 'users.read', 'offline.access'] }
+  );
+
+  // Store state and username
+  oauthStates.set(state, { username, codeVerifier });
+  setTimeout(() => oauthStates.delete(state), 15 * 60 * 1000); // Expire after 15 minutes
+
+  res.redirect(url);
+});
+
+// OAuth 2.0 callback endpoint
+app.get('/auth/callback', async (req, res) => {
+  const { state, code } = req.query;
+
+  if (!oauthStates.has(state)) {
+    return res.status(400).json({ error: 'Invalid or expired state' });
+  }
+
+  const { username, codeVerifier } = oauthStates.get(state);
+  oauthStates.delete(state);
 
   try {
-    // Fetch tweets (mocked for now)
-    const tweets = [
-      { text: 'Just attended the AI Summit 2025 in San Francisco! #AI #Tech', created_at: '2025-04-15T10:30:00.000Z' },
-      { text: 'Excited to watch the SpaceX Starship launch tomorrow! 🚀 @SpaceX', created_at: '2025-04-20T14:45:00.000Z' }
-    ];
+    // Exchange code for access token
+    const { client, accessToken, refreshToken } = await twitterClient.loginWithOAuth2({
+      code,
+      codeVerifier,
+      redirectUri: process.env.X_REDIRECT_URI,
+    });
+
+    // Store tokens (in-memory for now)
+    userTokens.set(username, { accessToken, refreshToken });
+    setTimeout(() => userTokens.delete(username), 2 * 60 * 60 * 1000); // Expire after 2 hours
+
+    res.json({ message: `Successfully authenticated for ${username}` });
+  } catch (error) {
+    console.error('OAuth callback error:', error.message);
+    res.status(500).json({ error: 'Failed to authenticate with X' });
+  }
+});
+
+// Generate questions endpoint
+app.post('/games', async (req, res) => {
+  const { basename, stakeAmount, playerLimit, duration, username } = req.body;
+
+  if (!username) {
+    return res.status(400).json({ error: 'Username is required' });
+  }
+
+  if (!userTokens.has(username)) {
+    return res.status(401).json({ error: 'User not authenticated. Please authenticate via /auth/login' });
+  }
+
+  try {
+    // Create Twitter client with user's access token
+    const userClient = new TwitterApi(userTokens.get(username).accessToken);
+
+    // Get user ID
+    console.error(`Fetching user ID for username: ${username}`);
+    const userResponse = await userClient.v2.userByUsername(username);
+    const userId = userResponse.data.id;
+
+    // Fetch user's tweets (limited to 3 tweets)
+    console.error(`Fetching up to 3 tweets for user ID: ${userId}`);
+    const tweetsResponse = await userClient.v2.userTimeline(userId, {
+      max_results: 3,
+      'tweet.fields': ['created_at', 'text'],
+    });
+
+    const tweets = [];
+    for await (const tweet of tweetsResponse) {
+      tweets.push({
+        text: tweet.text,
+        created_at: tweet.created_at,
+      });
+    }
+
+    console.error(`Fetched ${tweets.length} tweets`);
+
+    if (tweets.length === 0) {
+      throw new Error('No tweets found for the user');
+    }
 
     // Escape single quotes in JSON string
     const tweetsJson = JSON.stringify(tweets).replace(/'/g, "\\'");
