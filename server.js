@@ -8,12 +8,35 @@ const cors = require('cors');
 const { TwitterApi } = require('twitter-api-v2');
 const fs = require('fs');
 const path = require('path');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
 
 const execPromise = util.promisify(exec);
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+
+// Swagger configuration
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'DTriviaAIOnChain API',
+      version: '1.0.0',
+      description: 'API for a Web3 trivia DApp generating questions from X tweets',
+    },
+    servers: [
+      {
+        url: 'https://dtaioc-aimodel-1.onrender.com',
+        description: 'Production server',
+      },
+    ],
+  },
+  apis: ['./server.js'],
+};
+const swaggerSpec = swaggerJsdoc(swaggerOptions);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Database configuration with SSL
 const pool = new Pool({
@@ -106,7 +129,39 @@ async function refreshUserToken(username, refreshToken) {
   }
 }
 
-// Health check endpoint
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Check server health
+ *     description: Returns the status of environment variables and server health
+ *     responses:
+ *       200:
+ *         description: Server health status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 env:
+ *                   type: object
+ *                   properties:
+ *                     X_CLIENT_ID:
+ *                       type: boolean
+ *                     X_CLIENT_SECRET:
+ *                       type: boolean
+ *                     X_REDIRECT_URI:
+ *                       type: string
+ *                     DB_NAME:
+ *                       type: boolean
+ *                     PINATA_JWT:
+ *                       type: boolean
+ *                     OPENAI_API_KEY:
+ *                       type: boolean
+ */
 app.get('/health', (req, res) => {
   const envStatus = {
     X_CLIENT_ID: !!process.env.X_CLIENT_ID,
@@ -119,7 +174,44 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', env: envStatus });
 });
 
-// OAuth 2.0 login endpoint
+/**
+ * @swagger
+ * /auth/login:
+ *   get:
+ *     summary: Initiate X OAuth 2.0 login
+ *     description: Redirects to X OAuth for user authentication
+ *     parameters:
+ *       - in: query
+ *         name: username
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: X username
+ *     responses:
+ *       302:
+ *         description: Redirects to X OAuth URL
+ *       400:
+ *         description: Username is required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Username is required
+ *       500:
+ *         description: Failed to initiate OAuth login
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                 details:
+ *                   type: string
+ */
 app.get('/auth/login', (req, res) => {
   const { username } = req.query;
   if (!username) {
@@ -144,7 +236,58 @@ app.get('/auth/login', (req, res) => {
   }
 });
 
-// OAuth 2.0 callback endpoint
+/**
+ * @swagger
+ * /auth/callback:
+ *   get:
+ *     summary: Handle X OAuth 2.0 callback
+ *     description: Exchanges OAuth code for access token and stores it
+ *     parameters:
+ *       - in: query
+ *         name: state
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: OAuth state
+ *       - in: query
+ *         name: code
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: OAuth authorization code
+ *     responses:
+ *       200:
+ *         description: Successful authentication
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Successfully authenticated for <username>
+ *       400:
+ *         description: Invalid or expired state
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Invalid or expired state
+ *       500:
+ *         description: Failed to authenticate with X
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                 details:
+ *                   type: string
+ */
 app.get('/auth/callback', async (req, res) => {
   const { state, code } = req.query;
 
@@ -178,7 +321,98 @@ app.get('/auth/callback', async (req, res) => {
   }
 });
 
-// Generate questions endpoint
+/**
+ * @swagger
+ * /games:
+ *   post:
+ *     summary: Create a new trivia game
+ *     description: Fetches user tweets, generates trivia questions, and stores game data
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               basename:
+ *                 type: string
+ *                 description: Base name for the game
+ *                 example: creator.base.eth
+ *               stakeAmount:
+ *                 type: integer
+ *                 description: Stake amount for the game
+ *                 example: 10
+ *               playerLimit:
+ *                 type: integer
+ *                 description: Maximum number of players
+ *                 example: 50
+ *               duration:
+ *                 type: integer
+ *                 description: Game duration in seconds
+ *                 example: 3600
+ *               username:
+ *                 type: string
+ *                 description: X username for tweet fetching
+ *                 example: akinwunmi_eth
+ *             required:
+ *               - basename
+ *               - stakeAmount
+ *               - playerLimit
+ *               - duration
+ *               - username
+ *     responses:
+ *       200:
+ *         description: Game created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 gameId:
+ *                   type: integer
+ *                   example: 1
+ *                 questionHashes:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                     example: 0x...
+ *                 ipfsCid:
+ *                   type: string
+ *                   example: Qm...
+ *       400:
+ *         description: Username is required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Username is required
+ *       401:
+ *         description: User not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: User not authenticated. Please authenticate via /auth/login
+ *       500:
+ *         description: Failed to create game
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                 stderr:
+ *                   type: string
+ *                 stdout:
+ *                   type: string
+ */
 app.post('/games', async (req, res) => {
   const { basename, stakeAmount, playerLimit, duration, username } = req.body;
 
@@ -339,7 +573,60 @@ app.post('/games', async (req, res) => {
   }
 });
 
-// Submit answers endpoint
+/**
+ * @swagger
+ * /games/{gameId}/submit:
+ *   post:
+ *     summary: Submit answers for a game
+ *     description: Submits answer hashes and calculates score
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the game
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               stage:
+ *                 type: integer
+ *                 description: Game stage
+ *                 example: 1
+ *               answerHashes:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   example: 0x...
+ *                 description: Array of answer hashes
+ *             required:
+ *               - stage
+ *               - answerHashes
+ *     responses:
+ *       200:
+ *         description: Submission successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 score:
+ *                   type: integer
+ *                   example: 1
+ *       500:
+ *         description: Failed to submit answers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 app.post('/games/:gameId/submit', async (req, res) => {
   const { gameId } = req.params;
   const { stage, answerHashes } = req.body;
@@ -369,7 +656,50 @@ app.post('/games/:gameId/submit', async (req, res) => {
   }
 });
 
-// Get questions endpoint
+/**
+ * @swagger
+ * /games/{gameId}/questions:
+ *   get:
+ *     summary: Retrieve questions for a game
+ *     description: Returns all questions for the specified game
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the game
+ *     responses:
+ *       200:
+ *         description: List of questions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   question:
+ *                     type: string
+ *                     example: According to akinwunmi_eth's tweets, which version of Uniswap...
+ *                   options:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                       example: V3
+ *                   hash:
+ *                     type: string
+ *                     example: 0x...
+ *       500:
+ *         description: Failed to fetch questions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
 app.get('/games/:gameId/questions', async (req, res) => {
   const { gameId } = req.params;
   try {
