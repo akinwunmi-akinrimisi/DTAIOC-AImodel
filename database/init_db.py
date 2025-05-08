@@ -55,16 +55,7 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
-        # Create user_tokens table
-        conn.run("""
-            CREATE TABLE IF NOT EXISTS user_tokens (
-                username VARCHAR(255) PRIMARY KEY,
-                access_token TEXT NOT NULL,
-                refresh_token TEXT NOT NULL,
-                expires_at TIMESTAMP NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        """)
+
 
         conn.commit()
         print("Database initialized successfully")
