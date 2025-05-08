@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Decentralized Trivia Game Backend",
   "main": "server.js",
+  "apidoc": {
+    "title": "dtaioc apiDoc ",
+    "url" : "git+https://github.com/akinwunmi-akinrimisi/DTAIOC-AImodel.git"
+  },
   "scripts": {
     "start": "node server.js",
     "postinstall": "pip install -r requirements.txt"
