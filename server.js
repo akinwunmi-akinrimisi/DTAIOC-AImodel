@@ -75,6 +75,9 @@ try {
 }
 
 // Twitter API configuration
+if (!process.env.X_CLIENT_ID || !process.env.X_CLIENT_SECRET) {
+  console.error('Error: X_CLIENT_ID or X_CLIENT_SECRET is not set');
+}
 const twitterClient = new TwitterApi({
   clientId: process.env.X_CLIENT_ID,
   clientSecret: process.env.X_CLIENT_SECRET,
@@ -84,24 +87,44 @@ const twitterClient = new TwitterApi({
 const oauthStates = new Map();
 const userTokens = new Map();
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  const envStatus = {
+    X_CLIENT_ID: !!process.env.X_CLIENT_ID,
+    X_CLIENT_SECRET: !!process.env.X_CLIENT_SECRET,
+    X_REDIRECT_URI: process.env.X_REDIRECT_URI,
+    DB_NAME: !!process.env.DB_NAME,
+    PINATA_JWT: !!process.env.PINATA_JWT,
+    OPENAI_API_KEY: !!process.env.OPENAI_API_KEY
+  };
+  res.json({ status: 'ok', env: envStatus });
+});
+
 // OAuth 2.0 login endpoint
 app.get('/auth/login', (req, res) => {
   const { username } = req.query;
   if (!username) {
+    console.error('OAuth login error: Username is required');
     return res.status(400).json({ error: 'Username is required' });
   }
 
-  // Generate OAuth 2.0 URL
-  const { url, codeVerifier, state } = twitterClient.generateOAuth2AuthLink(
-    process.env.X_REDIRECT_URI,
-    { scope: ['tweet.read', 'users.read', 'offline.access'] }
-  );
+  try {
+    // Generate OAuth 2.0 URL
+    const { url, codeVerifier, state } = twitterClient.generateOAuth2AuthLink(
+      process.env.X_REDIRECT_URI,
+      { scope: ['tweet.read', 'users.read', 'offline.access'] }
+    );
 
-  // Store state and username
-  oauthStates.set(state, { username, codeVerifier });
-  setTimeout(() => oauthStates.delete(state), 15 * 60 * 1000); // Expire after 15 minutes
+    // Store state and username
+    oauthStates.set(state, { username, codeVerifier });
+    setTimeout(() => oauthStates.delete(state), 15 * 60 * 1000); // Expire after 15 minutes
 
-  res.redirect(url);
+    console.error(`Redirecting ${username} to X OAuth URL`);
+    res.redirect(url);
+  } catch (error) {
+    console.error('OAuth login error:', error.message, error.stack);
+    res.status(500).json({ error: 'Failed to initiate OAuth login', details: error.message });
+  }
 });
 
 // OAuth 2.0 callback endpoint
@@ -109,6 +132,7 @@ app.get('/auth/callback', async (req, res) => {
   const { state, code } = req.query;
 
   if (!oauthStates.has(state)) {
+    console.error('OAuth callback error: Invalid or expired state');
     return res.status(400).json({ error: 'Invalid or expired state' });
   }
 
@@ -117,6 +141,7 @@ app.get('/auth/callback', async (req, res) => {
 
   try {
     // Exchange code for access token
+    console.error(`Exchanging code for access token for ${username}`);
     const { client, accessToken, refreshToken } = await twitterClient.loginWithOAuth2({
       code,
       codeVerifier,
@@ -127,10 +152,11 @@ app.get('/auth/callback', async (req, res) => {
     userTokens.set(username, { accessToken, refreshToken });
     setTimeout(() => userTokens.delete(username), 2 * 60 * 60 * 1000); // Expire after 2 hours
 
+    console.error(`Successfully authenticated ${username}`);
     res.json({ message: `Successfully authenticated for ${username}` });
   } catch (error) {
-    console.error('OAuth callback error:', error.message);
-    res.status(500).json({ error: 'Failed to authenticate with X' });
+    console.error('OAuth callback error:', error.message, error.stack);
+    res.status(500).json({ error: 'Failed to authenticate with X', details: error.message });
   }
 });
 
@@ -139,10 +165,12 @@ app.post('/games', async (req, res) => {
   const { basename, stakeAmount, playerLimit, duration, username } = req.body;
 
   if (!username) {
+    console.error('Games endpoint error: Username is required');
     return res.status(400).json({ error: 'Username is required' });
   }
 
   if (!userTokens.has(username)) {
+    console.error(`Games endpoint error: User ${username} not authenticated`);
     return res.status(401).json({ error: 'User not authenticated. Please authenticate via /auth/login' });
   }
 
@@ -226,7 +254,7 @@ app.post('/games', async (req, res) => {
       ipfsCid: pinataResult.IpfsHash
     });
   } catch (error) {
-    console.error('Error in /games endpoint:', error.message);
+    console.error('Error in /games endpoint:', error.message, error.stack);
     res.status(500).json({
       error: `Failed to create game: ${error.message}`,
       stderr: error.stderr || '',
@@ -263,7 +291,7 @@ app.post('/games/:gameId/submit', async (req, res) => {
 
     res.json({ score });
   } catch (error) {
-    console.error('Error in /submit endpoint:', error.message);
+    console.error('Error in /submit endpoint:', error.message, error.stack);
     res.status(500).json({ error: `Failed to submit answers: ${error.message}` });
   }
 });
