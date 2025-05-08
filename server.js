@@ -83,7 +83,7 @@ const twitterClient = new TwitterApi({
   clientSecret: process.env.X_CLIENT_SECRET,
 });
 
-// Store OAuth state and tokens temporarily (in-memory for simplicity; use Redis in production)
+// Store OAuth state and tokens
 const oauthStates = new Map();
 const userTokens = new Map();
 
@@ -109,15 +109,13 @@ app.get('/auth/login', (req, res) => {
   }
 
   try {
-    // Generate OAuth 2.0 URL
     const { url, codeVerifier, state } = twitterClient.generateOAuth2AuthLink(
       process.env.X_REDIRECT_URI,
       { scope: ['tweet.read', 'users.read', 'offline.access'] }
     );
 
-    // Store state and username
     oauthStates.set(state, { username, codeVerifier });
-    setTimeout(() => oauthStates.delete(state), 15 * 60 * 1000); // Expire after 15 minutes
+    setTimeout(() => oauthStates.delete(state), 15 * 60 * 1000);
 
     console.error(`Redirecting ${username} to X OAuth URL`);
     res.redirect(url);
@@ -140,7 +138,6 @@ app.get('/auth/callback', async (req, res) => {
   oauthStates.delete(state);
 
   try {
-    // Exchange code for access token
     console.error(`Exchanging code for access token for ${username}`);
     const { client, accessToken, refreshToken } = await twitterClient.loginWithOAuth2({
       code,
@@ -148,9 +145,8 @@ app.get('/auth/callback', async (req, res) => {
       redirectUri: process.env.X_REDIRECT_URI,
     });
 
-    // Store tokens (in-memory for now)
     userTokens.set(username, { accessToken, refreshToken });
-    setTimeout(() => userTokens.delete(username), 2 * 60 * 60 * 1000); // Expire after 2 hours
+    setTimeout(() => userTokens.delete(username), 2 * 60 * 60 * 1000);
 
     console.error(`Successfully authenticated ${username}`);
     res.json({ message: `Successfully authenticated for ${username}` });
@@ -175,19 +171,22 @@ app.post('/games', async (req, res) => {
   }
 
   try {
-    // Create Twitter client with user's access token
     const userClient = new TwitterApi(userTokens.get(username).accessToken);
 
-    // Get user ID
     console.error(`Fetching user ID for username: ${username}`);
     const userResponse = await userClient.v2.userByUsername(username);
     const userId = userResponse.data.id;
 
-    // Fetch user's tweets (limited to 3 tweets)
+    if (!userId) {
+      throw new Error(`User ID not found for username: ${username}`);
+    }
+
     console.error(`Fetching up to 3 tweets for user ID: ${userId}`);
     const tweetsResponse = await userClient.v2.userTimeline(userId, {
-      max_results: 3,
-      'tweet.fields': ['created_at', 'text'],
+      max_results: 3
+    }).catch(error => {
+      console.error('Tweet fetch error details:', error.data);
+      throw error;
     });
 
     const tweets = [];
@@ -204,10 +203,8 @@ app.post('/games', async (req, res) => {
       throw new Error('No tweets found for the user');
     }
 
-    // Escape single quotes in JSON string
     const tweetsJson = JSON.stringify(tweets).replace(/'/g, "\\'");
 
-    // Run question generator
     console.error('Executing question_generator.py with tweets:', tweetsJson);
     const { stdout, stderr } = await execPromise(`python ai/question_generator.py '${tweetsJson}'`);
     if (stderr) {
@@ -220,10 +217,8 @@ app.post('/games', async (req, res) => {
       throw new Error('No questions generated');
     }
 
-    // Extract question hashes
     const questionHashes = questions.map(q => q.hash);
 
-    // Store game in database
     console.error('Inserting game into database');
     const gameResult = await pool.query(
       'INSERT INTO games (basename, stake_amount, player_limit, duration, status) VALUES ($1, $2, $3, $4, $5) RETURNING id',
@@ -231,7 +226,6 @@ app.post('/games', async (req, res) => {
     );
     const gameId = gameResult.rows[0].id;
 
-    // Store questions in database
     console.error('Inserting questions into database');
     for (const q of questions) {
       await pool.query(
@@ -240,7 +234,6 @@ app.post('/games', async (req, res) => {
       );
     }
 
-    // Upload questions to Pinata
     if (!pinata) {
       throw new Error('Pinata client not initialized');
     }
@@ -269,12 +262,10 @@ app.post('/games/:gameId/submit', async (req, res) => {
   const { stage, answerHashes } = req.body;
 
   try {
-    // Fetch correct answers
     console.error('Fetching questions for gameId:', gameId);
     const questionsResult = await pool.query('SELECT hash, correct_answer FROM questions WHERE game_id = $1', [gameId]);
     const correctHashes = questionsResult.rows.map(q => q.hash);
 
-    // Calculate score
     let score = 0;
     for (let i = 0; i < answerHashes.length; i++) {
       if (answerHashes[i] === correctHashes[i]) {
@@ -282,7 +273,6 @@ app.post('/games/:gameId/submit', async (req, res) => {
       }
     }
 
-    // Store submission
     console.error('Inserting submission for gameId:', gameId);
     await pool.query(
       'INSERT INTO submissions (game_id, stage, score, answer_hashes) VALUES ($1, $2, $3, $4)',
