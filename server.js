@@ -6,6 +6,7 @@ const PinataClient = require('@pinata/sdk');
 const { Pool } = require('pg');
 const cors = require('cors');
 const { TwitterApi } = require('twitter-api-v2');
+const fs = require('fs');
 
 const execPromise = util.promisify(exec);
 
@@ -186,8 +187,18 @@ app.post('/games', async (req, res) => {
       max_results: 6
     }).catch(error => {
       console.error('Tweet fetch error details:', error.data);
+      if (error.data && error.data.status === 429) {
+        const resetTime = error.headers['x-rate-limit-reset']
+          ? new Date(parseInt(error.headers['x-rate-limit-reset']) * 1000).toISOString()
+          : 'Unknown';
+        console.error(`Rate limit exceeded. Remaining: ${error.headers['x-rate-limit-remaining'] || 'Unknown'}, Reset: ${resetTime}`);
+        throw new Error(`Rate limit exceeded. Try again after ${resetTime}`);
+      }
       throw error;
     });
+
+    console.error(`Rate limit remaining: ${tweetsResponse.headers['x-rate-limit-remaining'] || 'Unknown'}`);
+    console.error(`Rate limit reset: ${tweetsResponse.headers['x-rate-limit-reset'] ? new Date(parseInt(tweetsResponse.headers['x-rate-limit-reset']) * 1000).toISOString() : 'Unknown'}`);
 
     const tweets = [];
     for await (const tweet of tweetsResponse) {
@@ -203,10 +214,12 @@ app.post('/games', async (req, res) => {
       throw new Error('No tweets found for the user');
     }
 
-    const tweetsJson = JSON.stringify(tweets).replace(/'/g, "\\'");
+    const tempFilePath = '/tmp/tweets.json';
+    console.error(`Writing tweets to ${tempFilePath}`);
+    fs.writeFileSync(tempFilePath, JSON.stringify(tweets));
 
-    console.error('Executing question_generator.py with tweets:', tweetsJson);
-    const { stdout, stderr } = await execPromise(`python ai/question_generator.py '${tweetsJson}'`);
+    console.error('Executing question_generator.py with temp file:', tempFilePath);
+    const { stdout, stderr } = await execPromise(`python ai/question_generator.py ${tempFilePath}`);
     if (stderr) {
       console.error('Question generator stderr:', stderr);
     }
@@ -215,7 +228,7 @@ app.post('/games', async (req, res) => {
     const questions = JSON.parse(stdout);
     if (!Array.isArray(questions) || questions.length === 0) {
       throw new Error('No questions generated');
- francs   }
+    }
 
     const questionHashes = questions.map(q => q.hash);
 
