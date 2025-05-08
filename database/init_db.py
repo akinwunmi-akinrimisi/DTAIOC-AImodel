@@ -60,10 +60,21 @@ def init_db():
             CREATE TABLE IF NOT EXISTS submissions (
                 id SERIAL PRIMARY KEY,
                 game_id INTEGER REFERENCES games(id) ON DELETE CASCADE,
+                username VARCHAR(255) REFERENCES users(username),
                 stage INTEGER NOT NULL,
                 score INTEGER NOT NULL,
                 answer_hashes TEXT[] NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+
+        # Create game_participants table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS game_participants (
+                game_id INTEGER REFERENCES games(id) ON DELETE CASCADE,
+                username VARCHAR(255) REFERENCES users(username),
+                joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (game_id, username)
             );
         """)
 

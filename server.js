@@ -575,10 +575,10 @@ app.post('/games', async (req, res) => {
 
 /**
  * @swagger
- * /games/{gameId}/submit:
+ * /games/{gameId}/join:
  *   post:
- *     summary: Submit answers for a game
- *     description: Submits answer hashes and calculates score
+ *     summary: Join an existing trivia game
+ *     description: Allows an authenticated user to join a game, enforcing player limit
  *     parameters:
  *       - in: path
  *         name: gameId
@@ -593,6 +593,154 @@ app.post('/games', async (req, res) => {
  *           schema:
  *             type: object
  *             properties:
+ *               username:
+ *                 type: string
+ *                 description: X username of the user joining
+ *                 example: akinwunmi_eth
+ *             required:
+ *               - username
+ *     responses:
+ *       200:
+ *         description: Successfully joined the game
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Successfully joined game 1
+ *       400:
+ *         description: Invalid request (e.g., username missing, game not found)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Username is required
+ *       401:
+ *         description: User not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: User not authenticated. Please authenticate via /auth/login
+ *       403:
+ *         description: Game is full or already joined
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Game has reached player limit
+ *       500:
+ *         description: Failed to join game
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
+app.post('/games/:gameId/join', async (req, res) => {
+  const { gameId } = req.params;
+  const { username } = req.body;
+
+  if (!username) {
+    console.error('Join endpoint error: Username is required');
+    return res.status(400).json({ error: 'Username is required' });
+  }
+
+  try {
+    // Check if user is authenticated
+    const userResult = await pool.query(
+      'SELECT username FROM users WHERE username = $1',
+      [username]
+    );
+    if (userResult.rows.length === 0) {
+      console.error(`Join endpoint error: User ${username} not authenticated`);
+      return res.status(401).json({ error: 'User not authenticated. Please authenticate via /auth/login' });
+    }
+
+    // Check if game exists and is active
+    const gameResult = await pool.query(
+      'SELECT player_limit FROM games WHERE id = $1 AND status = $2',
+      [gameId, 'active']
+    );
+    if (gameResult.rows.length === 0) {
+      console.error(`Join endpoint error: Game ${gameId} not found or not active`);
+      return res.status(400).json({ error: 'Game not found or not active' });
+    }
+
+    const { player_limit } = gameResult.rows[0];
+
+    // Check player limit
+    const participantResult = await pool.query(
+      'SELECT COUNT(*) as count FROM game_participants WHERE game_id = $1',
+      [gameId]
+    );
+    const participantCount = parseInt(participantResult.rows[0].count);
+    if (participantCount >= player_limit) {
+      console.error(`Join endpoint error: Game ${gameId} has reached player limit`);
+      return res.status(403).json({ error: 'Game has reached player limit' });
+    }
+
+    // Check if user already joined
+    const alreadyJoined = await pool.query(
+      'SELECT 1 FROM game_participants WHERE game_id = $1 AND username = $2',
+      [gameId, username]
+    );
+    if (alreadyJoined.rows.length > 0) {
+      console.error(`Join endpoint error: User ${username} already joined game ${gameId}`);
+      return res.status(403).json({ error: 'User already joined this game' });
+    }
+
+    // Add user to game_participants
+    await pool.query(
+      'INSERT INTO game_participants (game_id, username) VALUES ($1, $2)',
+      [gameId, username]
+    );
+
+    console.error(`User ${username} successfully joined game ${gameId}`);
+    res.json({ message: `Successfully joined game ${gameId}` });
+  } catch (error) {
+    console.error('Error in /join endpoint:', error.message, error.stack);
+    res.status(500).json({ error: `Failed to join game: ${error.message}` });
+  }
+});
+
+/**
+ * @swagger
+ * /games/{gameId}/submit:
+ *   post:
+ *     summary: Submit answers for a game
+ *     description: Submits answer hashes and calculates score for an authenticated user
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the game
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: X username of the submitting user
+ *                 example: akinwunmi_eth
  *               stage:
  *                 type: integer
  *                 description: Game stage
@@ -604,6 +752,7 @@ app.post('/games', async (req, res) => {
  *                   example: 0x...
  *                 description: Array of answer hashes
  *             required:
+ *               - username
  *               - stage
  *               - answerHashes
  *     responses:
@@ -617,6 +766,26 @@ app.post('/games', async (req, res) => {
  *                 score:
  *                   type: integer
  *                   example: 1
+ *       400:
+ *         description: Invalid request (e.g., username missing)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Username is required
+ *       401:
+ *         description: User not authenticated or not joined
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: User has not joined this game
  *       500:
  *         description: Failed to submit answers
  *         content:
@@ -629,9 +798,45 @@ app.post('/games', async (req, res) => {
  */
 app.post('/games/:gameId/submit', async (req, res) => {
   const { gameId } = req.params;
-  const { stage, answerHashes } = req.body;
+  const { username, stage, answerHashes } = req.body;
+
+  if (!username) {
+    console.error('Submit endpoint error: Username is required');
+    return res.status(400).json({ error: 'Username is required' });
+  }
 
   try {
+    // Check if user is authenticated
+    const userResult = await pool.query(
+      'SELECT username FROM users WHERE username = $1',
+      [username]
+    );
+    if (userResult.rows.length === 0) {
+      console.error(`Submit endpoint error: User ${username} not authenticated`);
+      return res.status(401).json({ error: 'User not authenticated. Please authenticate via /auth/login' });
+    }
+
+    // Check if user has joined the game
+    const joinedResult = await pool.query(
+      'SELECT 1 FROM game_participants WHERE game_id = $1 AND username = $2',
+      [gameId, username]
+    );
+    if (joinedResult.rows.length === 0) {
+      console.error(`Submit endpoint error: User ${username} has not joined game ${gameId}`);
+      return res.status(401).json({ error: 'User has not joined this game' });
+    }
+
+    // Check if game exists and is active
+    const gameResult = await pool.query(
+      'SELECT 1 FROM games WHERE id = $1 AND status = $2',
+      [gameId, 'active']
+    );
+    if (gameResult.rows.length === 0) {
+      console.error(`Submit endpoint error: Game ${gameId} not found or not active`);
+      return res.status(400).json({ error: 'Game not found or not active' });
+    }
+
+    // Fetch questions and calculate score
     console.error('Fetching questions for gameId:', gameId);
     const questionsResult = await pool.query('SELECT hash, correct_answer FROM questions WHERE game_id = $1', [gameId]);
     const correctHashes = questionsResult.rows.map(q => q.hash);
@@ -643,10 +848,11 @@ app.post('/games/:gameId/submit', async (req, res) => {
       }
     }
 
+    // Insert submission
     console.error('Inserting submission for gameId:', gameId);
     await pool.query(
-      'INSERT INTO submissions (game_id, stage, score, answer_hashes) VALUES ($1, $2, $3, $4)',
-      [gameId, stage, score, answerHashes]
+      'INSERT INTO submissions (game_id, username, stage, score, answer_hashes) VALUES ($1, $2, $3, $4, $5)',
+      [gameId, username, stage, score, answerHashes]
     );
 
     res.json({ score });
