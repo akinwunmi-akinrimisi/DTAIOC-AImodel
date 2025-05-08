@@ -15,7 +15,7 @@ load_dotenv()
 print("Checking environment variables for proxy settings:", file=sys.stderr)
 for key, value in os.environ.items():
     if "PROXY" in key.upper() or "OPENAI" in key.upper():
-        print(f"{key}: {value}", file=sys.stderr)
+        print(f"{key}: {'<hidden>' if 'OPENAI' in key.upper() else value}", file=sys.stderr)
 
 # Remove proxy-related environment variables
 proxy_related_keys = [key for key in os.environ.keys() if "PROXY" in key.upper()]
@@ -54,7 +54,7 @@ class QuestionGenerator:
             sys.exit(1)
 
     def generate_questions(self, tweets, num_questions=15, max_retries=3):
-        tweet_text = "\n".join([f"{t['created_at']}: {t['text']}" for t in tweets])
+        tweet_text = "\n".join([f"{t.get('created_at', 'Unknown')}: {t['text']}" for t in tweets])
         prompt = f"""
 Your task is to generate EXACTLY {num_questions} trivia questions with 4 multiple-choice answers each based on the following tweets.
 
