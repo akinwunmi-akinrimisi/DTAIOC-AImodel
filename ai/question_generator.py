@@ -169,17 +169,22 @@ Return ONLY a JSON array with exactly {missing} question objects.
 if __name__ == "__main__":
     try:
         print("Starting question generator script", file=sys.stderr)
-        if len(sys.argv) > 1:
-            tweets = json.loads(sys.argv[1])
-            print(f"Loaded {len(tweets)} tweets from command line argument", file=sys.stderr)
-        else:
-            try:
-                with open("ai/mock_tweets.json", "r") as f:
-                    tweets = json.load(f)
-                    print(f"Loaded {len(tweets)} tweets from mock_tweets.json", file=sys.stderr)
-            except FileNotFoundError:
-                print("Error: mock_tweets.json not found", file=sys.stderr)
-                sys.exit(1)
+        if len(sys.argv) != 2:
+            print("Error: Expected a file path as argument", file=sys.stderr)
+            sys.exit(1)
+
+        file_path = sys.argv[1]
+        print(f"Reading tweets from file: {file_path}", file=sys.stderr)
+        try:
+            with open(file_path, 'r') as f:
+                tweets = json.load(f)
+            print(f"Loaded {len(tweets)} tweets from {file_path}", file=sys.stderr)
+        except FileNotFoundError:
+            print(f"Error: File {file_path} not found", file=sys.stderr)
+            sys.exit(1)
+        except json.JSONDecodeError as e:
+            print(f"Error: Invalid JSON in {file_path}: {str(e)}", file=sys.stderr)
+            sys.exit(1)
 
         print("Creating QuestionGenerator instance", file=sys.stderr)
         generator = QuestionGenerator()
