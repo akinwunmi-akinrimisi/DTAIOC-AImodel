@@ -181,9 +181,9 @@ app.post('/games', async (req, res) => {
       throw new Error(`User ID not found for username: ${username}`);
     }
 
-    console.error(`Fetching up to 3 tweets for user ID: ${userId}`);
+    console.error(`Fetching up to 6 tweets for user ID: ${userId}`);
     const tweetsResponse = await userClient.v2.userTimeline(userId, {
-      max_results: 3
+      max_results: 6
     }).catch(error => {
       console.error('Tweet fetch error details:', error.data);
       throw error;
@@ -215,7 +215,7 @@ app.post('/games', async (req, res) => {
     const questions = JSON.parse(stdout);
     if (!Array.isArray(questions) || questions.length === 0) {
       throw new Error('No questions generated');
-    }
+ francs   }
 
     const questionHashes = questions.map(q => q.hash);
 
