@@ -85,9 +85,26 @@ const twitterClient = new TwitterApi({
   clientSecret: process.env.X_CLIENT_SECRET,
 });
 
-// Store OAuth state and tokens
+// Store OAuth state
 const oauthStates = new Map();
-const userTokens = new Map();
+
+// Refresh token function
+async function refreshUserToken(username, refreshToken) {
+  try {
+    console.error(`Refreshing token for ${username}`);
+    const { client, accessToken, refreshToken: newRefreshToken } = await twitterClient.refreshOAuth2Token(refreshToken);
+    const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // Assume 2-hour validity
+    await pool.query(
+      'INSERT INTO users (username, access_token, refresh_token, expires_at) VALUES ($1, $2, $3, $4) ON CONFLICT (username) DO UPDATE SET access_token = $2, refresh_token = $3, expires_at = $4, updated_at = CURRENT_TIMESTAMP',
+      [username, accessToken, newRefreshToken, expiresAt]
+    );
+    console.error(`Token refreshed for ${username}`);
+    return accessToken;
+  } catch (error) {
+    console.error(`Error refreshing token for ${username}:`, error.message);
+    throw error;
+  }
+}
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -147,8 +164,11 @@ app.get('/auth/callback', async (req, res) => {
       redirectUri: process.env.X_REDIRECT_URI,
     });
 
-    userTokens.set(username, { accessToken, refreshToken });
-    setTimeout(() => userTokens.delete(username), 2 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // Assume 2-hour validity
+    await pool.query(
+      'INSERT INTO users (username, access_token, refresh_token, expires_at) VALUES ($1, $2, $3, $4) ON CONFLICT (username) DO UPDATE SET access_token = $2, refresh_token = $3, expires_at = $4, updated_at = CURRENT_TIMESTAMP',
+      [username, accessToken, refreshToken, expiresAt]
+    );
 
     console.error(`Successfully authenticated ${username}`);
     res.json({ message: `Successfully authenticated for ${username}` });
@@ -167,16 +187,36 @@ app.post('/games', async (req, res) => {
     return res.status(400).json({ error: 'Username is required' });
   }
 
-  if (!userTokens.has(username)) {
-    console.error(`Games endpoint error: User ${username} not authenticated`);
-    return res.status(401).json({ error: 'User not authenticated. Please authenticate via /auth/login' });
+  let accessToken;
+  try {
+    console.error(`Checking token for ${username}`);
+    const userResult = await pool.query(
+      'SELECT access_token, refresh_token, expires_at FROM users WHERE username = $1',
+      [username]
+    );
+
+    if (userResult.rows.length === 0) {
+      console.error(`Games endpoint error: User ${username} not authenticated`);
+      return res.status(401).json({ error: 'User not authenticated. Please authenticate via /auth/login' });
+    }
+
+    const { access_token, refresh_token, expires_at } = userResult.rows[0];
+    if (new Date() > expires_at) {
+      console.error(`Token expired for ${username}`);
+      accessToken = await refreshUserToken(username, refresh_token);
+    } else {
+      accessToken = access_token;
+    }
+  } catch (error) {
+    console.error(`Error checking token for ${username}:`, error.message);
+    return res.status(500).json({ error: `Failed to verify authentication: ${error.message}` });
   }
 
   let tempFilePath = '/tmp/tweets.json';
   let tweets;
 
   try {
-    const userClient = new TwitterApi(userTokens.get(username).accessToken);
+    const userClient = new TwitterApi(accessToken);
 
     console.error(`Fetching user ID for username: ${username}`);
     const userResponse = await userClient.v2.userByUsername(username);

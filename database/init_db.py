@@ -16,6 +16,17 @@ def init_db():
         )
         cursor = conn.cursor()
 
+        # Create users table for OAuth tokens
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                username VARCHAR(255) PRIMARY KEY,
+                access_token TEXT NOT NULL,
+                refresh_token TEXT NOT NULL,
+                expires_at TIMESTAMP NOT NULL,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+
         # Create games table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS games (
@@ -55,7 +66,6 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
-
 
         conn.commit()
         print("Database initialized successfully")
