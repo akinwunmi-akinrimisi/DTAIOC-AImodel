@@ -16,18 +16,19 @@ def init_db():
         )
         cursor = conn.cursor()
 
-        # Create users table for OAuth tokens
+        # Create users table for OAuth tokens and wallet address
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 username VARCHAR(255) PRIMARY KEY,
                 access_token TEXT NOT NULL,
                 refresh_token TEXT NOT NULL,
                 expires_at TIMESTAMP NOT NULL,
+                wallet_address VARCHAR(42),
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
 
-        # Create games table
+        # Create games table with end_time
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS games (
                 id SERIAL PRIMARY KEY,
@@ -37,7 +38,8 @@ def init_db():
                 duration INTEGER NOT NULL,
                 status VARCHAR(50) NOT NULL,
                 ipfs_cid VARCHAR(255),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                end_time TIMESTAMP
             );
         """)
 

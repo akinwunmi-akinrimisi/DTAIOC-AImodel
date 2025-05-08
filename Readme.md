@@ -13,6 +13,7 @@ Generates 15 questions with OpenAI (gpt-4o-mini), prefixed with “According to 
 Stores OAuth tokens in users table with 24h+ validity via refresh tokens.
 Stores games/questions in PostgreSQL (Render).
 Questions pinned to IPFS via Pinata.
+Users can join games and submit answers, with player limit enforcement.
 
 Setup
 
@@ -25,6 +26,7 @@ GET /health: Check server status.
 GET /auth/login: Initiate X OAuth.
 GET /auth/callback: Handle OAuth callback.
 POST /games: Create trivia game.
+POST /games/:gameId/join: Join a game.
 POST /games/:gameId/submit: Submit answers.
 GET /games/:gameId/questions: Retrieve questions.
 See https://dtaioc-aimodel-1.onrender.com/api-docs for details.

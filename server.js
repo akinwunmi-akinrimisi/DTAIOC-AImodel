@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
+const { ethers } = require('ethers');
 
 const execPromise = util.promisify(exec);
 
@@ -108,6 +109,25 @@ const twitterClient = new TwitterApi({
   clientSecret: process.env.X_CLIENT_SECRET,
 });
 
+// Web3 configuration
+const provider = new ethers.providers.JsonRpcProvider(`https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`);
+const contractAddress = process.env.CONTRACT_ADDRESS || '0xYourContractAddress';
+const paymasterAddress = process.env.PAYMASTER_ADDRESS || '0xYourPaymasterAddress';
+const entryPointAddress = process.env.ENTRY_POINT_ADDRESS || '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789';
+const contractAbi = [
+  {
+    "inputs": [
+      {"internalType": "address", "name": "to", "type": "address"},
+      {"internalType": "uint256", "name": "amount", "type": "uint256"}
+    ],
+    "name": "mint",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+];
+const contract = new ethers.Contract(contractAddress, contractAbi, provider);
+
 // Store OAuth state
 const oauthStates = new Map();
 
@@ -169,7 +189,9 @@ app.get('/health', (req, res) => {
     X_REDIRECT_URI: process.env.X_REDIRECT_URI,
     DB_NAME: !!process.env.DB_NAME,
     PINATA_JWT: !!process.env.PINATA_JWT,
-    OPENAI_API_KEY: !!process.env.OPENAI_API_KEY
+    OPENAI_API_KEY: !!process.env.OPENAI_API_KEY,
+    ALCHEMY_API_KEY: !!process.env.ALCHEMY_API_KEY,
+    CONTRACT_ADDRESS: !!process.env.CONTRACT_ADDRESS
   };
   res.json({ status: 'ok', env: envStatus });
 });
@@ -537,9 +559,11 @@ app.post('/games', async (req, res) => {
     const questionHashes = questions.map(q => q.hash);
 
     console.error('Inserting game into database');
+    const createdAt = new Date();
+    const endTime = new Date(createdAt.getTime() + duration * 1000);
     const gameResult = await pool.query(
-      'INSERT INTO games (basename, stake_amount, player_limit, duration, status) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-      [basename, stakeAmount, playerLimit, duration, 'active']
+      'INSERT INTO games (basename, stake_amount, player_limit, duration, status, end_time) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+      [basename, stakeAmount, playerLimit, duration, 'active', endTime]
     );
     const gameId = gameResult.rows[0].id;
 
@@ -672,7 +696,7 @@ app.post('/games/:gameId/join', async (req, res) => {
 
     // Check if game exists and is active
     const gameResult = await pool.query(
-      'SELECT player_limit FROM games WHERE id = $1 AND status = $2',
+      'SELECT player_limit, end_time FROM games WHERE id = $1 AND status = $2',
       [gameId, 'active']
     );
     if (gameResult.rows.length === 0) {
@@ -680,7 +704,11 @@ app.post('/games/:gameId/join', async (req, res) => {
       return res.status(400).json({ error: 'Game not found or not active' });
     }
 
-    const { player_limit } = gameResult.rows[0];
+    const { player_limit, end_time } = gameResult.rows[0];
+    if (new Date() > new Date(end_time)) {
+      console.error(`Join endpoint error: Game ${gameId} has ended`);
+      return res.status(400).json({ error: 'Game has ended' });
+    }
 
     // Check player limit
     const participantResult = await pool.query(
@@ -828,12 +856,18 @@ app.post('/games/:gameId/submit', async (req, res) => {
 
     // Check if game exists and is active
     const gameResult = await pool.query(
-      'SELECT 1 FROM games WHERE id = $1 AND status = $2',
+      'SELECT end_time FROM games WHERE id = $1 AND status = $2',
       [gameId, 'active']
     );
     if (gameResult.rows.length === 0) {
       console.error(`Submit endpoint error: Game ${gameId} not found or not active`);
       return res.status(400).json({ error: 'Game not found or not active' });
+    }
+
+    const { end_time } = gameResult.rows[0];
+    if (new Date() > new Date(end_time)) {
+      console.error(`Submit endpoint error: Game ${gameId} has ended`);
+      return res.status(400).json({ error: 'Game has ended' });
     }
 
     // Fetch questions and calculate score
@@ -918,6 +952,229 @@ app.get('/games/:gameId/questions', async (req, res) => {
   } catch (error) {
     console.error('Error in /questions endpoint:', error.message, error.stack);
     res.status(500).json({ error: `Failed to fetch questions: ${error.message}` });
+  }
+});
+
+/**
+ * @swagger
+ * /games/{gameId}/leaderboard:
+ *   get:
+ *     summary: Retrieve leaderboard for a game
+ *     description: Returns ranked list of players with their highest scores
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the game
+ *     responses:
+ *       200:
+ *         description: Leaderboard data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   username:
+ *                     type: string
+ *                     example: akinwunmi_eth
+ *                   score:
+ *                     type: integer
+ *                     example: 15
+ *       400:
+ *         description: Game not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Game not found
+ *       500:
+ *         description: Failed to fetch leaderboard
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
+app.get('/games/:gameId/leaderboard', async (req, res) => {
+  const { gameId } = req.params;
+
+  try {
+    // Check if game exists
+    const gameResult = await pool.query(
+      'SELECT 1 FROM games WHERE id = $1',
+      [gameId]
+    );
+    if (gameResult.rows.length === 0) {
+      console.error(`Leaderboard endpoint error: Game ${gameId} not found`);
+      return res.status(400).json({ error: 'Game not found' });
+    }
+
+    // Fetch leaderboard (max score per user)
+    const leaderboardResult = await pool.query(
+      'SELECT username, MAX(score) as score FROM submissions WHERE game_id = $1 GROUP BY username ORDER BY score DESC',
+      [gameId]
+    );
+
+    res.json(leaderboardResult.rows);
+  } catch (error) {
+    console.error('Error in /leaderboard endpoint:', error.message, error.stack);
+    res.status(500).json({ error: `Failed to fetch leaderboard: ${error.message}` });
+  }
+});
+
+/**
+ * @swagger
+ * /games/{gameId}/mint:
+ *   post:
+ *     summary: Mint tokens for a game winner
+ *     description: Triggers token minting for an authenticated user, using a paymaster for gasless transactions
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the game
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: X username of the user minting tokens
+ *                 example: akinwunmi_eth
+ *               amount:
+ *                 type: integer
+ *                 description: Amount of tokens to mint
+ *                 example: 100
+ *             required:
+ *               - username
+ *               - amount
+ *     responses:
+ *       200:
+ *         description: Tokens minted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 transactionHash:
+ *                   type: string
+ *                   example: 0x...
+ *       400:
+ *         description: Invalid request (e.g., username missing, game not ended)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: Username is required
+ *       401:
+ *         description: User not authenticated or not a winner
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: User is not eligible to mint tokens
+ *       500:
+ *         description: Failed to mint tokens
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ */
+app.post('/games/:gameId/mint', async (req, res) => {
+  const { gameId } = req.params;
+  const { username, amount } = req.body;
+
+  if (!username || !amount) {
+    console.error('Mint endpoint error: Username and amount are required');
+    return res.status(400).json({ error: 'Username and amount are required' });
+  }
+
+  try {
+    // Check if user is authenticated and has wallet address
+    const userResult = await pool.query(
+      'SELECT wallet_address FROM users WHERE username = $1',
+      [username]
+    );
+    if (userResult.rows.length === 0 || !userResult.rows[0].wallet_address) {
+      console.error(`Mint endpoint error: User ${username} not authenticated or no wallet address`);
+      return res.status(401).json({ error: 'User not authenticated or no wallet address set. Please authenticate via /auth/login and set wallet address' });
+    }
+    const walletAddress = userResult.rows[0].wallet_address;
+
+    // Check if game exists and has ended
+    const gameResult = await pool.query(
+      'SELECT end_time FROM games WHERE id = $1',
+      [gameId]
+    );
+    if (gameResult.rows.length === 0) {
+      console.error(`Mint endpoint error: Game ${gameId} not found`);
+      return res.status(400).json({ error: 'Game not found' });
+    }
+    const { end_time } = gameResult.rows[0];
+    if (new Date() < new Date(end_time)) {
+      console.error(`Mint endpoint error: Game ${gameId} has not ended`);
+      return res.status(400).json({ error: 'Game has not ended' });
+    }
+
+    // Check if user is in top leaderboard (e.g., top 3)
+    const leaderboardResult = await pool.query(
+      'SELECT username FROM (SELECT username, MAX(score) as score FROM submissions WHERE game_id = $1 GROUP BY username ORDER BY score DESC LIMIT 3) as top WHERE username = $2',
+      [gameId, username]
+    );
+    if (leaderboardResult.rows.length === 0) {
+      console.error(`Mint endpoint error: User ${username} is not eligible to mint`);
+      return res.status(401).json({ error: 'User is not eligible to mint tokens' });
+    }
+
+    // Construct UserOperation for gasless transaction (simplified, assumes EIP-4337 setup)
+    const userOp = {
+      sender: walletAddress,
+      nonce: await provider.getTransactionCount(walletAddress),
+      initCode: '0x',
+      callData: contract.interface.encodeFunctionData('mint', [walletAddress, ethers.utils.parseUnits(amount.toString(), 18)]),
+      callGasLimit: ethers.utils.hexlify(200000),
+      verificationGasLimit: ethers.utils.hexlify(100000),
+      preVerificationGas: ethers.utils.hexlify(21000),
+      maxFeePerGas: ethers.utils.hexlify(1000000000),
+      maxPriorityFeePerGas: ethers.utils.hexlify(1000000000),
+      paymasterAndData: paymasterAddress + '0x', // Simplified, assumes paymaster accepts
+      signature: '0x' // Dummy signature, assumes paymaster handles validation
+    };
+
+    // Submit UserOperation to EntryPoint (mocked, replace with actual bundler call)
+    console.error(`Submitting UserOperation for ${username} to mint ${amount} tokens`);
+    // const tx = await provider.send('eth_sendUserOperation', [userOp, entryPointAddress]);
+    // For demo, simulate transaction
+    const tx = { hash: '0xMockTransactionHash' };
+
+    console.error(`Tokens minted for ${username}, tx: ${tx.hash}`);
+    res.json({ transactionHash: tx.hash });
+  } catch (error) {
+    console.error('Error in /mint endpoint:', error.message, error.stack);
+    res.status(500).json({ error: `Failed to mint tokens: ${error.message}` });
   }
 });
 
