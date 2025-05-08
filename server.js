@@ -188,17 +188,17 @@ app.post('/games', async (req, res) => {
     }).catch(error => {
       console.error('Tweet fetch error details:', error.data);
       if (error.data && error.data.status === 429) {
-        const resetTime = error.headers['x-rate-limit-reset']
+        const resetTime = error.headers && error.headers['x-rate-limit-reset']
           ? new Date(parseInt(error.headers['x-rate-limit-reset']) * 1000).toISOString()
           : 'Unknown';
-        console.error(`Rate limit exceeded. Remaining: ${error.headers['x-rate-limit-remaining'] || 'Unknown'}, Reset: ${resetTime}`);
+        console.error(`Rate limit exceeded. Remaining: ${error.headers && error.headers['x-rate-limit-remaining'] || 'Unknown'}, Reset: ${resetTime}`);
         throw new Error(`Rate limit exceeded. Try again after ${resetTime}`);
       }
       throw error;
     });
 
-    console.error(`Rate limit remaining: ${tweetsResponse.headers['x-rate-limit-remaining'] || 'Unknown'}`);
-    console.error(`Rate limit reset: ${tweetsResponse.headers['x-rate-limit-reset'] ? new Date(parseInt(tweetsResponse.headers['x-rate-limit-reset']) * 1000).toISOString() : 'Unknown'}`);
+    console.error(`Rate limit remaining: ${tweetsResponse.headers && tweetsResponse.headers['x-rate-limit-remaining'] || 'Unknown'}`);
+    console.error(`Rate limit reset: ${tweetsResponse.headers && tweetsResponse.headers['x-rate-limit-reset'] ? new Date(parseInt(tweetsResponse.headers['x-rate-limit-reset']) * 1000).toISOString() : 'Unknown'}`);
 
     const tweets = [];
     for await (const tweet of tweetsResponse) {
