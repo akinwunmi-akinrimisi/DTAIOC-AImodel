@@ -7,6 +7,7 @@ const { Pool } = require('pg');
 const cors = require('cors');
 const { TwitterApi } = require('twitter-api-v2');
 const fs = require('fs');
+const path = require('path');
 
 const execPromise = util.promisify(exec);
 
@@ -171,6 +172,9 @@ app.post('/games', async (req, res) => {
     return res.status(401).json({ error: 'User not authenticated. Please authenticate via /auth/login' });
   }
 
+  let tempFilePath = '/tmp/tweets.json';
+  let tweets;
+
   try {
     const userClient = new TwitterApi(userTokens.get(username).accessToken);
 
@@ -186,13 +190,8 @@ app.post('/games', async (req, res) => {
     const tweetsResponse = await userClient.v2.userTimeline(userId, {
       max_results: 6
     }).catch(error => {
-      console.error('Tweet fetch error details:', error.data);
       if (error.data && error.data.status === 429) {
-        const resetTime = error.headers && error.headers['x-rate-limit-reset']
-          ? new Date(parseInt(error.headers['x-rate-limit-reset']) * 1000).toISOString()
-          : 'Unknown';
-        console.error(`Rate limit exceeded. Remaining: ${error.headers && error.headers['x-rate-limit-remaining'] || 'Unknown'}, Reset: ${resetTime}`);
-        throw new Error(`Rate limit exceeded. Try again after ${resetTime}`);
+        throw error; // Handle rate limit specifically below
       }
       throw error;
     });
@@ -200,7 +199,7 @@ app.post('/games', async (req, res) => {
     console.error(`Rate limit remaining: ${tweetsResponse.headers && tweetsResponse.headers['x-rate-limit-remaining'] || 'Unknown'}`);
     console.error(`Rate limit reset: ${tweetsResponse.headers && tweetsResponse.headers['x-rate-limit-reset'] ? new Date(parseInt(tweetsResponse.headers['x-rate-limit-reset']) * 1000).toISOString() : 'Unknown'}`);
 
-    const tweets = [];
+    tweets = [];
     for await (const tweet of tweetsResponse) {
       tweets.push({
         text: tweet.text,
@@ -214,11 +213,42 @@ app.post('/games', async (req, res) => {
       throw new Error('No tweets found for the user');
     }
 
-    const tempFilePath = '/tmp/tweets.json';
     console.error(`Writing tweets to ${tempFilePath}`);
     fs.writeFileSync(tempFilePath, JSON.stringify(tweets));
+  } catch (error) {
+    if (error.data && error.data.status === 429) {
+      console.error('Rate limit exceeded, falling back to backup tweet files');
+      const backupFiles = [
+        path.join(__dirname, 'ai/user1.json'),
+        path.join(__dirname, 'ai/user2.json'),
+        path.join(__dirname, 'ai/user3.json')
+      ];
+      tempFilePath = backupFiles[Math.floor(Math.random() * backupFiles.length)];
+      console.error(`Using backup file: ${tempFilePath}`);
+      try {
+        const backupData = JSON.parse(fs.readFileSync(tempFilePath));
+        if (!backupData.username || !Array.isArray(backupData.tweets)) {
+          throw new Error('Invalid backup file format');
+        }
+        console.error(`Backup file loaded: ${backupData.username}, ${backupData.tweets.length} tweets`);
+      } catch (backupError) {
+        console.error('Error reading backup file:', backupError.message);
+        return res.status(500).json({
+          error: `Failed to create game: Rate limit exceeded and backup file error: ${backupError.message}`
+        });
+      }
+    } else {
+      console.error('Error in tweet fetch:', error.message, error.stack);
+      return res.status(500).json({
+        error: `Failed to create game: ${error.message}`,
+        stderr: error.stderr || '',
+        stdout: error.stdout || ''
+      });
+    }
+  }
 
-    console.error('Executing question_generator.py with temp file:', tempFilePath);
+  try {
+    console.error('Executing question_generator.py with file:', tempFilePath);
     const { stdout, stderr } = await execPromise(`python ai/question_generator.py ${tempFilePath}`);
     if (stderr) {
       console.error('Question generator stderr:', stderr);

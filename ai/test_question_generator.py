@@ -3,13 +3,18 @@ import json
 
 def test_generate_questions():
     try:
-        with open("ai/mock_tweets.json", "r") as f:
-            tweets = json.load(f)
+        with open("ai/user1.json", "r") as f:
+            data = json.load(f)
+        if 'username' not in data or 'tweets' not in data:
+            print("Error: Invalid format in user1.json")
+            return
+        tweets = data['tweets']
+        username = data['username']
     except FileNotFoundError:
-        print("Error: mock_tweets.json not found")
+        print("Error: user1.json not found")
         return
     except json.JSONDecodeError:
-        print("Error: Invalid JSON in mock_tweets.json")
+        print("Error: Invalid JSON in user1.json")
         return
 
     if not tweets:
@@ -17,7 +22,7 @@ def test_generate_questions():
         return
 
     generator = QuestionGenerator()
-    questions = generator.generate_questions(tweets)
+    questions = generator.generate_questions(tweets, username)
     print(f"Generated {len(questions)} questions:")
     for q in questions[:3]:
         print(json.dumps(q, indent=2))

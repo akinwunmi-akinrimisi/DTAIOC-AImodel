@@ -8,8 +8,8 @@ from dotenv import load_dotenv
 import httpx
 from openai import OpenAI
 
-# Load environment variables from config/.env
-load_dotenv(dotenv_path="config/.env")
+# Load environment variables
+load_dotenv()
 
 # Debug environment variables
 print("Checking environment variables for proxy settings:", file=sys.stderr)
@@ -53,14 +53,14 @@ class QuestionGenerator:
             traceback.print_exc(file=sys.stderr)
             sys.exit(1)
 
-    def generate_questions(self, tweets, username, num_questions=15, max_retries=3):
+    def generate_questions(self, tweets, num_questions=15, max_retries=3):
         tweet_text = "\n".join([f"{t.get('created_at', 'Unknown')}: {t['text']}" for t in tweets])
         prompt = f"""
-Your task is to generate EXACTLY {num_questions} unique trivia questions with 4 multiple-choice answers each based on the following tweets.
+Your task is to generate EXACTLY {num_questions} trivia questions with 4 multiple-choice answers each based on the following tweets.
 
-IMPORTANT: You MUST generate EXACTLY {num_questions} questions - no more, no less. The questions should be engaging, technically accurate, and suitable for a general audience interested in the tweet topics (e.g., events, technologies, organizations, music, social issues). Avoid redundant questions (e.g., repeating the same topic or entity; cap questions on any single theme to 3). Prefix each question with 'According to {username}\\'s tweets' to clarify answers reflect the creator's words, not verified truths. Ensure answers are directly supported by tweet text; do not infer roles for mentioned names unless explicitly stated. Frame inferred answers as 'implied' or 'suggested' to avoid assumptions. Do not assume specific user interests; focus on the tweet content.
+IMPORTANT: You MUST generate EXACTLY {num_questions} questions - no more, no less. This is critical.
 
-For tweets about KYC, prioritize 'securely' as the ideal duration over speed. If tweets lack enough content, create plausible questions related to the mentioned topics (e.g., blockchain, DeFi, music charts, social events).
+The questions must be based on tweet content (events, mentions, interests, etc.) and should be engaging for someone familiar with the user's public activity. If the tweets don't provide enough direct content, create plausible questions related to the topics mentioned.
 
 Return a JSON array of EXACTLY {num_questions} objects, each with:
 - 'question': The trivia question
@@ -76,21 +76,21 @@ Tweets:
 Example of expected format:
 [
     {{
-        "question": "According to {username}\\'s tweets, what technology is mentioned for enhancing KYC processes?",
-        "options": ["AI", "Zero-knowledge proofs", "Cloud computing", "IoT"],
-        "correct_answer": 1,
+        "question": "Which event did the user tweet about in April?",
+        "options": ["Conference", "Birthday", "Concert", "Meeting"],
+        "correct_answer": 0,
         "hash": ""
     }},
     {{
-        "question": "According to {username}\\'s tweets, which event is mentioned?",
-        "options": ["ETHGlobal", "Basecamp 12", "Devcon", "Consensus"],
+        "question": "What technology was the user exploring for their next project?",
+        "options": ["Blockchain", "Neural networks", "Quantum computing", "Augmented reality"],
         "correct_answer": 1,
         "hash": ""
     }},
-    ...and so on until EXACTLY {num_questions} unique questions
+    ...and so on until EXACTLY {num_questions} questions
 ]
 
-Remember: EXACTLY {num_questions} unique, non-redundant questions based on tweet content.
+Remember: I need EXACTLY {num_questions} questions. Create additional relevant questions if needed to reach this count.
 """
         for attempt in range(max_retries):
             try:
@@ -124,10 +124,9 @@ Remember: EXACTLY {num_questions} unique, non-redundant questions based on tweet
                     missing = num_questions - len(questions)
                     print(f"Generating {missing} additional questions...", file=sys.stderr)
                     additional_prompt = f"""
-Based on these tweets, generate exactly {missing} more unique trivia questions with 4 multiple-choice answers each.
+Based on these tweets, generate exactly {missing} more trivia questions with 4 multiple-choice answers each.
 Make them different from these existing questions:
 {json.dumps(questions, indent=2)}
-Focus on the tweet content (e.g., technologies, events, organizations, music, social issues). Prefix each question with 'According to {username}\\'s tweets'. Ensure answers are directly supported by tweet text; do not infer roles for mentioned names unless explicitly stated. Cap questions on any single theme to 3. Frame inferred answers as 'implied' or 'suggested'.
 
 Tweets:
 {tweet_text}
@@ -155,7 +154,6 @@ Return ONLY a JSON array with exactly {missing} question objects.
                     q["hash"] = "0x" + sha256((q["question"] + correct_answer).encode()).hexdigest()
 
                 assert len(questions) == num_questions, f"Expected {num_questions} questions, got {len(questions)}"
-                print(f"Generated {len(questions)} questions", file=sys.stderr)
                 return questions
 
             except Exception as e:
@@ -171,7 +169,7 @@ Return ONLY a JSON array with exactly {missing} question objects.
 if __name__ == "__main__":
     try:
         print("Starting question generator script", file=sys.stderr)
-        if len(sys.argv) < 2:
+        if len(sys.argv) != 2:
             print("Error: Expected a file path as argument", file=sys.stderr)
             sys.exit(1)
 
@@ -179,15 +177,8 @@ if __name__ == "__main__":
         print(f"Reading tweets from file: {file_path}", file=sys.stderr)
         try:
             with open(file_path, 'r') as f:
-                data = json.load(f)
-            if 'username' in data and 'tweets' in data:
-                username = data['username']
-                tweets = data['tweets']
-            else:
-                username = sys.argv[2] if len(sys.argv) > 2 else "unknown"
-                tweets = data
+                tweets = json.load(f)
             print(f"Loaded {len(tweets)} tweets from {file_path}", file=sys.stderr)
-            print(f"Using username: {username}", file=sys.stderr)
         except FileNotFoundError:
             print(f"Error: File {file_path} not found", file=sys.stderr)
             sys.exit(1)
@@ -197,8 +188,8 @@ if __name__ == "__main__":
 
         print("Creating QuestionGenerator instance", file=sys.stderr)
         generator = QuestionGenerator()
-        print(f"Generating questions for username: {username}", file=sys.stderr)
-        questions = generator.generate_questions(tweets, username)
+        print("Generating questions", file=sys.stderr)
+        questions = generator.generate_questions(tweets)
         print(f"Generated {len(questions)} questions", file=sys.stderr)
         print(json.dumps(questions, indent=2))
     except Exception as e:
