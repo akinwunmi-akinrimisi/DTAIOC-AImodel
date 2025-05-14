@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package.json requirements.txt ./
 
 # Install Node.js and Python dependencies
-RUN npm install && \
+RUN npm install --legacy-peer-deps && \
     pip cache purge && \
     python3.12 -m pip install --no-cache-dir -r requirements.txt
 
@@ -18,7 +18,7 @@ COPY . .
 # Create abis directory to avoid permission issues
 RUN mkdir -p abis
 
-# Expose port (Render assigns dynamic port, so this is informational)
+# Expose port (Render assigns dynamic port)
 EXPOSE 3000
 
 # Start the server

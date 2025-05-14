@@ -110,7 +110,7 @@ const twitterClient = new TwitterApi({
 });
 
 // Web3 configuration
-const provider = new ethers.providers.JsonRpcProvider(`https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`);
+const provider = new ethers.providers.JsonRpcProvider(`https://eth-sepolia.g.alchemy.com/v2/${process.env.BASE_SEPOLIA_RPC_URL}`);
 const contractAddress = process.env.CONTRACT_ADDRESS || '0xYourContractAddress';
 const paymasterAddress = process.env.PAYMASTER_ADDRESS || '0xYourPaymasterAddress';
 const entryPointAddress = process.env.ENTRY_POINT_ADDRESS || '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789';

@@ -38,8 +38,8 @@
     "twitter-api-v2": "^1.23.0"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
     "hardhat": "^2.24.0",
-    "hardhat-abi-exporter": "^2.11.0"
+    "hardhat-abi-exporter": "^2.10.1"
   }
 }
