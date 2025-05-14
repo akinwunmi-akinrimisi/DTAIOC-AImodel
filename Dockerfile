@@ -15,10 +15,11 @@ RUN npm install && \
 # Copy the rest of the application
 COPY . .
 
-# Expose port 3000
+# Create abis directory to avoid permission issues
+RUN mkdir -p abis
+
+# Expose port (Render assigns dynamic port, so this is informational)
 EXPOSE 3000
 
 # Start the server
 CMD ["node", "server.js"]
-
-
