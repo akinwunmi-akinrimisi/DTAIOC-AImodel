@@ -1,0 +1,2411 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "DTriviaAIOnChain API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://dtaioc-aimodel-1.onrender.com"
+    }
+  ],
+  "paths": {
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/MAX_MINT_PER_WALLET": {
+      "get": {
+        "summary": "Call DTAIOCToken.MAX_MINT_PER_WALLET",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/MAX_SUPPLY": {
+      "get": {
+        "summary": "Call DTAIOCToken.MAX_SUPPLY",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/MIN_BALANCE_FOR_MINT": {
+      "get": {
+        "summary": "Call DTAIOCToken.MIN_BALANCE_FOR_MINT",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/allowance": {
+      "get": {
+        "summary": "Call DTAIOCToken.allowance",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "owner",
+            "schema": {
+              "type": "address"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "spender",
+            "schema": {
+              "type": "address"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/approve": {
+      "post": {
+        "summary": "Call DTAIOCToken.approve",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "spender": {
+                    "type": "address"
+                  },
+                  "value": {
+                    "type": "uint256"
+                  }
+                },
+                "required": [
+                  "spender",
+                  "value"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/balanceOf": {
+      "get": {
+        "summary": "Call DTAIOCToken.balanceOf",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "account",
+            "schema": {
+              "type": "address"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/decimals": {
+      "get": {
+        "summary": "Call DTAIOCToken.decimals",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/mint": {
+      "post": {
+        "summary": "Call DTAIOCToken.mint",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "uint256"
+                  }
+                },
+                "required": [
+                  "amount"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/mintedAmount": {
+      "get": {
+        "summary": "Call DTAIOCToken.mintedAmount",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "param0",
+            "schema": {
+              "type": "address"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/mintingPaused": {
+      "get": {
+        "summary": "Call DTAIOCToken.mintingPaused",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/name": {
+      "get": {
+        "summary": "Call DTAIOCToken.name",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/owner": {
+      "get": {
+        "summary": "Call DTAIOCToken.owner",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/pauseMinting": {
+      "post": {
+        "summary": "Call DTAIOCToken.pauseMinting",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/renounceOwnership": {
+      "post": {
+        "summary": "Call DTAIOCToken.renounceOwnership",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/symbol": {
+      "get": {
+        "summary": "Call DTAIOCToken.symbol",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/totalMinted": {
+      "get": {
+        "summary": "Call DTAIOCToken.totalMinted",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/totalSupply": {
+      "get": {
+        "summary": "Call DTAIOCToken.totalSupply",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/transfer": {
+      "post": {
+        "summary": "Call DTAIOCToken.transfer",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "to": {
+                    "type": "address"
+                  },
+                  "value": {
+                    "type": "uint256"
+                  }
+                },
+                "required": [
+                  "to",
+                  "value"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/transferFrom": {
+      "post": {
+        "summary": "Call DTAIOCToken.transferFrom",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "address"
+                  },
+                  "to": {
+                    "type": "address"
+                  },
+                  "value": {
+                    "type": "uint256"
+                  }
+                },
+                "required": [
+                  "from",
+                  "to",
+                  "value"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/transferOwnership": {
+      "post": {
+        "summary": "Call DTAIOCToken.transferOwnership",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "newOwner": {
+                    "type": "address"
+                  }
+                },
+                "required": [
+                  "newOwner"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/unpauseMinting": {
+      "post": {
+        "summary": "Call DTAIOCToken.unpauseMinting",
+        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/approve": {
+      "post": {
+        "summary": "Call DTAIOCNFT.approve",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "to": {
+                    "type": "address"
+                  },
+                  "tokenId": {
+                    "type": "uint256"
+                  }
+                },
+                "required": [
+                  "to",
+                  "tokenId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/balanceOf": {
+      "get": {
+        "summary": "Call DTAIOCNFT.balanceOf",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "owner",
+            "schema": {
+              "type": "address"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/gameContract": {
+      "get": {
+        "summary": "Call DTAIOCNFT.gameContract",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/getApproved": {
+      "get": {
+        "summary": "Call DTAIOCNFT.getApproved",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "tokenId",
+            "schema": {
+              "type": "uint256"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/isApprovedForAll": {
+      "get": {
+        "summary": "Call DTAIOCNFT.isApprovedForAll",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "owner",
+            "schema": {
+              "type": "address"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "operator",
+            "schema": {
+              "type": "address"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/mintNFT": {
+      "post": {
+        "summary": "Call DTAIOCNFT.mintNFT",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "recipient": {
+                    "type": "address"
+                  },
+                  "gameId": {
+                    "type": "uint256"
+                  },
+                  "rank": {
+                    "type": "uint256"
+                  },
+                  "tokenURI": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "recipient",
+                  "gameId",
+                  "rank",
+                  "tokenURI"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/name": {
+      "get": {
+        "summary": "Call DTAIOCNFT.name",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/owner": {
+      "get": {
+        "summary": "Call DTAIOCNFT.owner",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/ownerOf": {
+      "get": {
+        "summary": "Call DTAIOCNFT.ownerOf",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "tokenId",
+            "schema": {
+              "type": "uint256"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/renounceOwnership": {
+      "post": {
+        "summary": "Call DTAIOCNFT.renounceOwnership",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/safeTransferFrom": {
+      "post": {
+        "summary": "Call DTAIOCNFT.safeTransferFrom",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "address"
+                  },
+                  "to": {
+                    "type": "address"
+                  },
+                  "tokenId": {
+                    "type": "uint256"
+                  },
+                  "data": {
+                    "type": "bytes"
+                  }
+                },
+                "required": [
+                  "from",
+                  "to",
+                  "tokenId",
+                  "data"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/setApprovalForAll": {
+      "post": {
+        "summary": "Call DTAIOCNFT.setApprovalForAll",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "operator": {
+                    "type": "address"
+                  },
+                  "approved": {
+                    "type": "bool"
+                  }
+                },
+                "required": [
+                  "operator",
+                  "approved"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/setGameContract": {
+      "post": {
+        "summary": "Call DTAIOCNFT.setGameContract",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "_gameContract": {
+                    "type": "address"
+                  }
+                },
+                "required": [
+                  "_gameContract"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/supportsInterface": {
+      "get": {
+        "summary": "Call DTAIOCNFT.supportsInterface",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "interfaceId",
+            "schema": {
+              "type": "bytes4"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/symbol": {
+      "get": {
+        "summary": "Call DTAIOCNFT.symbol",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/tokenURI": {
+      "get": {
+        "summary": "Call DTAIOCNFT.tokenURI",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "tokenId",
+            "schema": {
+              "type": "uint256"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/transferFrom": {
+      "post": {
+        "summary": "Call DTAIOCNFT.transferFrom",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "from": {
+                    "type": "address"
+                  },
+                  "to": {
+                    "type": "address"
+                  },
+                  "tokenId": {
+                    "type": "uint256"
+                  }
+                },
+                "required": [
+                  "from",
+                  "to",
+                  "tokenId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/transferOwnership": {
+      "post": {
+        "summary": "Call DTAIOCNFT.transferOwnership",
+        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "newOwner": {
+                    "type": "address"
+                  }
+                },
+                "required": [
+                  "newOwner"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/distributeRewards": {
+      "post": {
+        "summary": "Call DTAIOCStaking.distributeRewards",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gameId": {
+                    "type": "uint256"
+                  },
+                  "creator": {
+                    "type": "address"
+                  },
+                  "platform": {
+                    "type": "address"
+                  },
+                  "winners": {
+                    "type": "address[]"
+                  }
+                },
+                "required": [
+                  "gameId",
+                  "creator",
+                  "platform",
+                  "winners"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/forfeitedStakes": {
+      "get": {
+        "summary": "Call DTAIOCStaking.forfeitedStakes",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "param0",
+            "schema": {
+              "type": "uint256"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/gameContract": {
+      "get": {
+        "summary": "Call DTAIOCStaking.gameContract",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/owner": {
+      "get": {
+        "summary": "Call DTAIOCStaking.owner",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/pauseStaking": {
+      "post": {
+        "summary": "Call DTAIOCStaking.pauseStaking",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/platformAddress": {
+      "get": {
+        "summary": "Call DTAIOCStaking.platformAddress",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/playerStakes": {
+      "get": {
+        "summary": "Call DTAIOCStaking.playerStakes",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "param0",
+            "schema": {
+              "type": "uint256"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "param1",
+            "schema": {
+              "type": "address"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/refund": {
+      "post": {
+        "summary": "Call DTAIOCStaking.refund",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gameId": {
+                    "type": "uint256"
+                  },
+                  "player": {
+                    "type": "address"
+                  },
+                  "stage": {
+                    "type": "uint256"
+                  }
+                },
+                "required": [
+                  "gameId",
+                  "player",
+                  "stage"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/renounceOwnership": {
+      "post": {
+        "summary": "Call DTAIOCStaking.renounceOwnership",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/setGameContract": {
+      "post": {
+        "summary": "Call DTAIOCStaking.setGameContract",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "_gameContract": {
+                    "type": "address"
+                  }
+                },
+                "required": [
+                  "_gameContract"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/stake": {
+      "post": {
+        "summary": "Call DTAIOCStaking.stake",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gameId": {
+                    "type": "uint256"
+                  },
+                  "player": {
+                    "type": "address"
+                  },
+                  "amount": {
+                    "type": "uint256"
+                  }
+                },
+                "required": [
+                  "gameId",
+                  "player",
+                  "amount"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/stakingPaused": {
+      "get": {
+        "summary": "Call DTAIOCStaking.stakingPaused",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/token": {
+      "get": {
+        "summary": "Call DTAIOCStaking.token",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/totalStakes": {
+      "get": {
+        "summary": "Call DTAIOCStaking.totalStakes",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "param0",
+            "schema": {
+              "type": "uint256"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/transferOwnership": {
+      "post": {
+        "summary": "Call DTAIOCStaking.transferOwnership",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "newOwner": {
+                    "type": "address"
+                  }
+                },
+                "required": [
+                  "newOwner"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/unpauseStaking": {
+      "post": {
+        "summary": "Call DTAIOCStaking.unpauseStaking",
+        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xE2d6C0aF79bf5CA534B591B5A86bd467B308aB8F/resolve": {
+      "get": {
+        "summary": "Call IBasenameResolver.resolve",
+        "description": "Interact with IBasenameResolver contract at 0xE2d6C0aF79bf5CA534B591B5A86bd467B308aB8F",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "node",
+            "schema": {
+              "type": "bytes32"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/DEFAULT_GAME_DURATION": {
+      "get": {
+        "summary": "Call DTAIOCGame.DEFAULT_GAME_DURATION",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/NFT_TOKEN_URI": {
+      "get": {
+        "summary": "Call DTAIOCGame.NFT_TOKEN_URI",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/PLAYER_LIMIT": {
+      "get": {
+        "summary": "Call DTAIOCGame.PLAYER_LIMIT",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/STAKE_AMOUNT": {
+      "get": {
+        "summary": "Call DTAIOCGame.STAKE_AMOUNT",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/advanceStage": {
+      "post": {
+        "summary": "Call DTAIOCGame.advanceStage",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gameId": {
+                    "type": "uint256"
+                  }
+                },
+                "required": [
+                  "gameId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/autoEndGame": {
+      "post": {
+        "summary": "Call DTAIOCGame.autoEndGame",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gameId": {
+                    "type": "uint256"
+                  }
+                },
+                "required": [
+                  "gameId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/backendSigner": {
+      "get": {
+        "summary": "Call DTAIOCGame.backendSigner",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/basenameResolver": {
+      "get": {
+        "summary": "Call DTAIOCGame.basenameResolver",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/createGame": {
+      "post": {
+        "summary": "Call DTAIOCGame.createGame",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "basenameNode": {
+                    "type": "bytes32"
+                  },
+                  "questionRootHashes": {
+                    "type": "bytes32[3]"
+                  },
+                  "_gameDuration": {
+                    "type": "uint256"
+                  }
+                },
+                "required": [
+                  "basenameNode",
+                  "questionRootHashes",
+                  "_gameDuration"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/endGame": {
+      "post": {
+        "summary": "Call DTAIOCGame.endGame",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gameId": {
+                    "type": "uint256"
+                  }
+                },
+                "required": [
+                  "gameId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/gameCounter": {
+      "get": {
+        "summary": "Call DTAIOCGame.gameCounter",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/games": {
+      "get": {
+        "summary": "Call DTAIOCGame.games",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "gameId",
+            "schema": {
+              "type": "uint256"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/getLeaderboardData": {
+      "get": {
+        "summary": "Call DTAIOCGame.getLeaderboardData",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "gameId",
+            "schema": {
+              "type": "uint256"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/getPlayer": {
+      "get": {
+        "summary": "Call DTAIOCGame.getPlayer",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "gameId",
+            "schema": {
+              "type": "uint256"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "playerAddress",
+            "schema": {
+              "type": "address"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/isPlayerInGame": {
+      "get": {
+        "summary": "Call DTAIOCGame.isPlayerInGame",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "gameId",
+            "schema": {
+              "type": "uint256"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "player",
+            "schema": {
+              "type": "address"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/joinGame": {
+      "post": {
+        "summary": "Call DTAIOCGame.joinGame",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gameId": {
+                    "type": "uint256"
+                  },
+                  "basename": {
+                    "type": "string"
+                  },
+                  "signature": {
+                    "type": "bytes"
+                  }
+                },
+                "required": [
+                  "gameId",
+                  "basename",
+                  "signature"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/nft": {
+      "get": {
+        "summary": "Call DTAIOCGame.nft",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/owner": {
+      "get": {
+        "summary": "Call DTAIOCGame.owner",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/platformAddress": {
+      "get": {
+        "summary": "Call DTAIOCGame.platformAddress",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/questionHashUnique": {
+      "get": {
+        "summary": "Call DTAIOCGame.questionHashUnique",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "param0",
+            "schema": {
+              "type": "uint256"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "param1",
+            "schema": {
+              "type": "bytes32"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/refundPlayer": {
+      "post": {
+        "summary": "Call DTAIOCGame.refundPlayer",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gameId": {
+                    "type": "uint256"
+                  },
+                  "player": {
+                    "type": "address"
+                  }
+                },
+                "required": [
+                  "gameId",
+                  "player"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/renounceOwnership": {
+      "post": {
+        "summary": "Call DTAIOCGame.renounceOwnership",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/setBackendSigner": {
+      "post": {
+        "summary": "Call DTAIOCGame.setBackendSigner",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "_backendSigner": {
+                    "type": "address"
+                  }
+                },
+                "required": [
+                  "_backendSigner"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/staking": {
+      "get": {
+        "summary": "Call DTAIOCGame.staking",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/submitAnswers": {
+      "post": {
+        "summary": "Call DTAIOCGame.submitAnswers",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gameId": {
+                    "type": "uint256"
+                  },
+                  "stage": {
+                    "type": "uint256"
+                  },
+                  "answerHashes": {
+                    "type": "bytes32[]"
+                  },
+                  "score": {
+                    "type": "uint256"
+                  },
+                  "signature": {
+                    "type": "bytes"
+                  }
+                },
+                "required": [
+                  "gameId",
+                  "stage",
+                  "answerHashes",
+                  "score",
+                  "signature"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/submitted": {
+      "get": {
+        "summary": "Call DTAIOCGame.submitted",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "param0",
+            "schema": {
+              "type": "uint256"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "param1",
+            "schema": {
+              "type": "uint256"
+            },
+            "required": true
+          },
+          {
+            "in": "query",
+            "name": "param2",
+            "schema": {
+              "type": "address"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/token": {
+      "get": {
+        "summary": "Call DTAIOCGame.token",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/transferOwnership": {
+      "post": {
+        "summary": "Call DTAIOCGame.transferOwnership",
+        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "newOwner": {
+                    "type": "address"
+                  }
+                },
+                "required": [
+                  "newOwner"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    }
+  }
+}
