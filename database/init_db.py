@@ -31,7 +31,6 @@ def create_tables():
                 wallet_address TEXT
             );
         """)
-
         # Ensure wallet_address column exists
         cursor.execute("""
             ALTER TABLE users
@@ -50,6 +49,17 @@ def create_tables():
                 end_time TIMESTAMP NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+        """)
+        # Ensure end_time column exists
+        cursor.execute("""
+            ALTER TABLE games
+            ADD COLUMN IF NOT EXISTS end_time TIMESTAMP;
+        """)
+        # Update end_time for existing rows
+        cursor.execute("""
+            UPDATE games
+            SET end_time = created_at + (duration * INTERVAL '1 second')
+            WHERE end_time IS NULL;
         """)
 
         # Create questions table
