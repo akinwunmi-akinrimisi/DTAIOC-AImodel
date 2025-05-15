@@ -18,6 +18,49 @@ app.use(express.json());
 app.use(cors());
 
 // Swagger configuration
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Error:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *         suggestion:
+ *           type: string
+ *         details:
+ *           type: string
+ *     Game:
+ *       type: object
+ *       properties:
+ *         gameId:
+ *           type: integer
+ *         questionHashes:
+ *           type: array
+ *           items:
+ *             type: string
+ *         ipfsCid:
+ *           type: string
+ *     Question:
+ *       type: object
+ *       properties:
+ *         question:
+ *           type: string
+ *         options:
+ *           type: array
+ *           items:
+ *             type: string
+ *         hash:
+ *           type: string
+ *     LeaderboardEntry:
+ *       type: object
+ *       properties:
+ *         username:
+ *           type: string
+ *         score:
+ *           type: integer
+ */
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(JSON.parse(fs.readFileSync(path.join(__dirname, 'openapi.json'), 'utf8'))));
 app.get('/api-docs', (req, res) => res.redirect('/api-docs/'));
 
@@ -145,6 +188,43 @@ async function refreshUserToken(username, refreshToken) {
 }
 
 // Health endpoint
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Check server health
+ *     description: Returns the status of environment variables and server health.
+ *     responses:
+ *       200:
+ *         description: Server is healthy
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: ok
+ *                 env:
+ *                   type: object
+ *                   properties:
+ *                     X_CLIENT_ID:
+ *                       type: boolean
+ *                     X_CLIENT_SECRET:
+ *                       type: boolean
+ *                     X_REDIRECT_URI:
+ *                       type: boolean
+ *                     DB_NAME:
+ *                       type: boolean
+ *                     PINATA_JWT:
+ *                       type: boolean
+ *                     OPENAI_API_KEY:
+ *                       type: boolean
+ *                     ALCHEMY_API_KEY:
+ *                       type: boolean
+ *                     SIGNER_PRIVATE_KEY:
+ *                       type: boolean
+ */
 app.get('/health', (req, res) => {
   const envStatus = {
     X_CLIENT_ID: !!process.env.X_CLIENT_ID,
@@ -160,6 +240,35 @@ app.get('/health', (req, res) => {
 });
 
 // Auth endpoints
+/**
+ * @swagger
+ * /auth/login:
+ *   get:
+ *     summary: Initiate OAuth2 login with Twitter
+ *     description: Redirects the user to Twitter's OAuth2 authorization page.
+ *     parameters:
+ *       - in: query
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Username of the player
+ *     responses:
+ *       302:
+ *         description: Redirects to Twitter OAuth2 authorization URL
+ *       400:
+ *         description: Username is required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Failed to initiate OAuth login
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 app.get('/auth/login', (req, res) => {
   const { username } = req.query;
   if (!username) {
@@ -181,6 +290,48 @@ app.get('/auth/login', (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /auth/callback:
+ *   get:
+ *     summary: Handle OAuth2 callback from Twitter
+ *     description: Exchanges authorization code for access token and stores user credentials.
+ *     parameters:
+ *       - in: query
+ *         name: state
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: OAuth state parameter
+ *       - in: query
+ *         name: code
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Authorization code
+ *     responses:
+ *       200:
+ *         description: Successfully authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Invalid or expired state
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Failed to authenticate with Twitter
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 app.get('/auth/callback', async (req, res) => {
   const { state, code } = req.query;
   if (!oauthStates.has(state)) {
@@ -210,6 +361,68 @@ app.get('/auth/callback', async (req, res) => {
 });
 
 // Game endpoints
+/**
+ * @swagger
+ * /games:
+ *   post:
+ *     summary: Create a new game
+ *     description: Creates a game with questions generated from the user's tweets or backup data. Requires OAuth2 authentication.
+ *     security:
+ *       - oauth2: ['tweet.read', 'users.read', 'offline.access']
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - basename
+ *               - stakeAmount
+ *               - playerLimit
+ *               - duration
+ *               - username
+ *             properties:
+ *               basename:
+ *                 type: string
+ *                 description: Basename for the game
+ *               stakeAmount:
+ *                 type: number
+ *                 description: Amount to stake
+ *               playerLimit:
+ *                 type: integer
+ *                 description: Maximum number of players
+ *               duration:
+ *                 type: integer
+ *                 description: Game duration in seconds
+ *               username:
+ *                 type: string
+ *                 description: Username of the creator
+ *     responses:
+ *       200:
+ *         description: Game created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Game'
+ *       400:
+ *         description: Invalid request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: User not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error or rate limit exceeded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 app.post('/games', async (req, res) => {
   const { basename, stakeAmount, playerLimit, duration, username } = req.body;
   if (!username) {
@@ -329,6 +542,68 @@ app.post('/games', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /games/{gameId}/join:
+ *   post:
+ *     summary: Join an active game
+ *     description: Allows an authenticated user to join an active game if slots are available. Requires OAuth2 authentication.
+ *     security:
+ *       - oauth2: ['users.read']
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the game
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Username of the player
+ *     responses:
+ *       200:
+ *         description: Successfully joined game
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Invalid request or game not active
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: User not authenticated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       403:
+ *         description: Game full or user already joined
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 app.post('/games/:gameId/join', async (req, res) => {
   const { gameId } = req.params;
   const { username } = req.body;
@@ -372,6 +647,72 @@ app.post('/games/:gameId/join', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /games/{gameId}/submit:
+ *   post:
+ *     summary: Submit answers for a game
+ *     description: Submits answers for a game stage and calculates the score. Requires OAuth2 authentication.
+ *     security:
+ *       - oauth2: ['users.read']
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the game
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - stage
+ *               - answerHashes
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Username of the player
+ *               stage:
+ *                 type: integer
+ *                 description: Game stage
+ *               answerHashes:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Hashes of selected answers
+ *     responses:
+ *       200:
+ *         description: Answers submitted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 score:
+ *                   type: integer
+ *       400:
+ *         description: Invalid request or game not active
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: User not authenticated or not joined
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 app.post('/games/:gameId/submit', async (req, res) => {
   const { gameId } = req.params;
   const { username, stage, answerHashes } = req.body;
@@ -419,6 +760,35 @@ app.post('/games/:gameId/submit', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /games/{gameId}/questions:
+ *   get:
+ *     summary: Fetch game questions
+ *     description: Retrieves questions for a specific game.
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the game
+ *     responses:
+ *       200:
+ *         description: List of questions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Question'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 app.get('/games/:gameId/questions', async (req, res) => {
   const { gameId } = req.params;
   try {
@@ -431,6 +801,41 @@ app.get('/games/:gameId/questions', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /games/{gameId}/leaderboard:
+ *   get:
+ *     summary: Fetch game leaderboard
+ *     description: Retrieves the leaderboard for a specific game.
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the game
+ *     responses:
+ *       200:
+ *         description: Leaderboard entries
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/LeaderboardEntry'
+ *       400:
+ *         description: Game not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 app.get('/games/:gameId/leaderboard', async (req, res) => {
   const { gameId } = req.params;
   try {
@@ -450,6 +855,66 @@ app.get('/games/:gameId/leaderboard', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /games/{gameId}/mint:
+ *   post:
+ *     summary: Mint DTAIOC tokens for a game
+ *     description: Mints up to 100 DTAIOC tokens to the user's wallet if their balance is 10 DTAIOC or less and they are in the top 3 leaderboard. Requires OAuth2 authentication.
+ *     security:
+ *       - oauth2: ['users.read']
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the game
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - amount
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Username of the player
+ *               amount:
+ *                 type: number
+ *                 description: Amount of DTAIOC tokens to mint (max 100 per transaction)
+ *     responses:
+ *       200:
+ *         description: Tokens minted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 transactionHash:
+ *                   type: string
+ *       400:
+ *         description: Invalid request, amount too high, balance too high, or minting paused
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: User not authenticated or not eligible
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server or blockchain error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 app.post('/games/:gameId/mint', async (req, res) => {
   const { gameId } = req.params;
   const { username, amount } = req.body;
@@ -519,29 +984,14 @@ app.post('/games/:gameId/mint', async (req, res) => {
       });
     }
 
-    // Check max mint per wallet
-    let maxMintPerWallet, mintedByWallet;
-    try {
-      maxMintPerWallet = await tokenContract.maxMintPerWallet();
-      console.log(`Max mint per wallet: ${ethers.utils.formatUnits(maxMintPerWallet, 18)} DTAIOC`);
-    } catch (e) {
-      console.warn(`maxMintPerWallet() not available: ${e.message}`);
-    }
-    try {
-      mintedByWallet = await tokenContract.mintedPerWallet(walletAddress);
-      console.log(`Minted by wallet ${walletAddress}: ${ethers.utils.formatUnits(mintedByWallet, 18)} DTAIOC`);
-    } catch (e) {
-      console.warn(`mintedPerWallet() not available: ${e.message}`);
-    }
-    if (maxMintPerWallet && mintedByWallet) {
-      const amountToMint = ethers.utils.parseUnits(amount.toString(), 18);
-      if (mintedByWallet.add(amountToMint).gt(maxMintPerWallet)) {
-        console.error(`Mint endpoint error: Exceeds max mint per wallet for ${username}`);
-        return res.status(400).json({
-          error: `Cannot mint ${amount} DTAIOC: exceeds max mint per wallet (${ethers.utils.formatUnits(maxMintPerWallet, 18)} DTAIOC). Already minted: ${ethers.utils.formatUnits(mintedByWallet, 18)} DTAIOC.`,
-          suggestion: 'Use a different wallet or contact support to reset mint limit.'
-        });
-      }
+    // Check per-transaction mint limit
+    const MAX_MINT_PER_TX = 100; // 100 DTAIOC
+    if (amount > MAX_MINT_PER_TX) {
+      console.error(`Mint endpoint error: Amount exceeds max mint per transaction for ${username}`);
+      return res.status(400).json({
+        error: `Cannot mint ${amount} DTAIOC: exceeds max mint per transaction (${MAX_MINT_PER_TX} DTAIOC).`,
+        suggestion: 'Reduce the amount to 100 DTAIOC or less.'
+      });
     }
 
     // Initialize signer
@@ -571,6 +1021,66 @@ app.post('/games/:gameId/mint', async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /games/{gameId}/mint-tokens:
+ *   post:
+ *     summary: Alias for minting DTAIOC tokens
+ *     description: Redirects to /games/{gameId}/mint. Mints up to 100 DTAIOC tokens if balance is 10 DTAIOC or less. Requires OAuth2 authentication.
+ *     security:
+ *       - oauth2: ['users.read']
+ *     parameters:
+ *       - in: path
+ *         name: gameId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the game
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - amount
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Username of the player
+ *               amount:
+ *                 type: number
+ *                 description: Amount of DTAIOC tokens to mint (max 100 per transaction)
+ *     responses:
+ *       200:
+ *         description: Tokens minted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 transactionHash:
+ *                   type: string
+ *       400:
+ *         description: Invalid request, amount too high, balance too high, or minting paused
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: User not authenticated or not eligible
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server or blockchain error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
 app.post('/games/:gameId/mint-tokens', async (req, res) => {
   const { gameId } = req.params;
   console.log(`Redirecting /games/${gameId}/mint-tokens to /games/${gameId}/mint`);

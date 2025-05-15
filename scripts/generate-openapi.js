@@ -1,5 +1,7 @@
 const fs = require("fs");
 const path = require("path");
+const swaggerJsdoc = require("swagger-jsdoc");
+const SwaggerParser = require("swagger-parser");
 
 const contracts = {
   DTAIOCToken: "0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
@@ -16,7 +18,6 @@ function loadLocalAbi(contractName) {
     console.error(`ABI file for ${contractName} not found at ${abiPath}`);
     return null;
   }
-
   try {
     const abiData = JSON.parse(fs.readFileSync(abiPath, "utf8"));
     return Array.isArray(abiData) ? abiData : abiData.abi || null;
@@ -27,20 +28,51 @@ function loadLocalAbi(contractName) {
 }
 
 async function generateOpenApi() {
-  const openApiSpec = {
-    openapi: "3.0.0",
-    info: { title: "DTriviaAIOnChain API", version: "1.0.0" },
-    servers: [{ url: "https://dtaioc-aimodel-1.onrender.com" }],
-    paths: {},
+  // Initialize OpenAPI spec with Express routes and security schemes
+  const swaggerOptions = {
+    definition: {
+      openapi: "3.0.0",
+      info: {
+        title: "DTriviaAIOnChain API",
+        version: "1.0.0",
+        description: "API for DTriviaAIOnChain game platform with blockchain integration",
+      },
+      servers: [{ url: "https://dtaioc-aimodel-1.onrender.com" }],
+      security: [
+        {
+          oauth2: [], // Apply OAuth2 to endpoints where specified
+        },
+      ],
+      components: {
+        securitySchemes: {
+          oauth2: {
+            type: "oauth2",
+            flows: {
+              authorizationCode: {
+                authorizationUrl: "https://api.twitter.com/2/oauth2/authorize",
+                tokenUrl: "https://api.twitter.com/2/oauth2/token",
+                scopes: {
+                  "tweet.read": "Read tweets",
+                  "users.read": "Read user info",
+                  "offline.access": "Obtain refresh token",
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    apis: [path.join(__dirname, "../server.js")], // Scan server.js for JSDoc
   };
+  const openApiSpec = swaggerJsdoc(swaggerOptions);
 
+  // Add contract-based paths
   for (const [name, address] of Object.entries(contracts)) {
     const abi = loadLocalAbi(name);
     if (!abi || !Array.isArray(abi)) {
       console.error(`Skipping ${name}: Invalid or missing ABI`);
       continue;
     }
-
     abi.forEach((item) => {
       if (item.type === "function" && item.stateMutability !== "pure") {
         const path = `/contract/${address}/${item.name}`;
@@ -52,38 +84,47 @@ async function generateOpenApi() {
           required: true,
         }));
 
-        openApiSpec.paths[path] = {
-          [method]: {
-            summary: `Call ${name}.${item.name}`,
-            description: `Interact with ${name} contract at ${address}`,
-            parameters: method === "get" ? parameters : [],
-            requestBody:
-              method === "post"
-                ? {
-                    content: {
-                      "application/json": {
-                        schema: {
-                          type: "object",
-                          properties: Object.fromEntries(
-                            parameters.map((p) => [p.name, { type: p.schema.type }])
-                          ),
-                          required: parameters.map((p) => p.name),
-                        },
+        openApiSpec.paths[path] = openApiSpec.paths[path] || {};
+        openApiSpec.paths[path][method] = {
+          summary: `Call ${name}.${item.name}`,
+          description: `Interact with ${name} contract at ${address}`,
+          parameters: method === "get" ? parameters : [],
+          requestBody:
+            method === "post"
+              ? {
+                  content: {
+                    "application/json": {
+                      schema: {
+                        type: "object",
+                        properties: Object.fromEntries(
+                          parameters.map((p) => [p.name, { type: p.schema.type }])
+                        ),
+                        required: parameters.map((p) => p.name),
                       },
                     },
-                  }
-                : undefined,
-            responses: {
-              200: { description: "Success" },
-              400: { description: "Invalid input" },
-              500: { description: "Server error" },
-            },
+                  },
+                }
+              : undefined,
+          responses: {
+            200: { description: "Successful contract interaction" },
+            400: { description: "Invalid input parameters" },
+            500: { description: "Server or blockchain error" },
           },
         };
       }
     });
   }
 
+  // Validate OpenAPI spec
+  try {
+    await SwaggerParser.validate(openApiSpec);
+    console.log("OpenAPI spec is valid");
+  } catch (error) {
+    console.error("Invalid OpenAPI spec:", error.message);
+    throw error;
+  }
+
+  // Write to openapi.json
   const outputPath = path.join(__dirname, "../openapi.json");
   fs.writeFileSync(outputPath, JSON.stringify(openApiSpec, null, 2));
   console.log(`OpenAPI spec generated at ${outputPath}`);
