@@ -528,9 +528,9 @@ app.post('/games', async (req, res) => {
       );
     }
     if (!pinata) throw new Error('Pinata client not initialized');
-    console.log('Uploading questions to Pinata');
-    const pinataResult = await pinata.json.pin({ questions });
-    console.log('Pinata upload successful, CID:', pinataResult.cid);
+      console.log('Uploading questions to Pinata');
+      const pinataResult = await pinata.upload.json({ questions });
+      console.log('Pinata upload successful, CID:', pinataResult.IpfsHash);
     res.json({ gameId, questionHashes, ipfsCid: pinataResult.cid });
   } catch (error) {
     console.error('Error in /games endpoint:', error.message, error.stack);
