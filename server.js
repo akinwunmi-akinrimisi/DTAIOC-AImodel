@@ -11,6 +11,7 @@ const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const { ethers } = require('ethers');
 const { BiconomySmartAccountV2 } = require('@biconomy/account');
+const { BiconomyBundler } = require('@biconomy/bundler');
 
 const execPromise = util.promisify(exec);
 
@@ -531,20 +532,28 @@ app.post('/games/:gameId/mint', async (req, res) => {
     const signer = new ethers.Wallet(process.env.SIGNER_PRIVATE_KEY, provider);
     console.log(`Signer initialized for address: ${await signer.getAddress()}`);
 
+    // Initialize Biconomy Bundler
+    const bundler = new BiconomyBundler({
+      bundlerUrl: process.env.BUNDLER_URL,
+      chainId: 84532,
+      entryPointAddress,
+    });
+    console.log(`Bundler initialized with URL: ${process.env.BUNDLER_URL}`);
+    console.log(`Bundler methods: ${Object.keys(bundler).filter(k => typeof bundler[k] === 'function')}`);
+
     // Initialize Biconomy Smart Account
     const biconomyConfig = {
       chainId: 84532, // Base Sepolia
       entryPointAddress,
       signer,
-      bundlerUrl: process.env.BUNDLER_URL,
       paymasterUrl: `https://paymaster.biconomy.io/api/v1/84532/${process.env.BICONOMY_PAYMASTER_API_KEY}`,
     };
-    console.log(`Initializing smart account with bundler URL: ${biconomyConfig.bundlerUrl}`);
+    console.log(`Initializing smart account with bundler URL: ${process.env.BUNDLER_URL}`);
     const smartAccount = await BiconomySmartAccountV2.create({
       chainId: biconomyConfig.chainId,
       entryPointAddress: biconomyConfig.entryPointAddress,
       signer: biconomyConfig.signer,
-      bundler: { url: biconomyConfig.bundlerUrl },
+      bundler,
       paymaster: { paymasterUrl: biconomyConfig.paymasterUrl },
     }).catch(error => {
       throw new Error(`Failed to initialize smart account: ${error.message}`);
