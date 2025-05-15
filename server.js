@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const { exec } = require('child_process');
 const util = require('util');
-const PinataClient = require('@pinata/sdk');
+const { PinataSDK } = require('pinata-web3');
 const { Pool } = require('pg');
 const cors = require('cors');
 const { TwitterApi } = require('twitter-api-v2');
@@ -72,7 +72,10 @@ console.log('Checking PINATA_JWT:', pinataJwt ? 'Set' : 'Not set');
 let pinata;
 try {
   if (!pinataJwt) throw new Error('PINATA_JWT environment variable is not set');
-  pinata = new PinataClient({ pinataJWTKey: pinataJwt });
+  pinata = new PinataSDK({
+    pinataJwt,
+    pinataGateway: 'https://gateway.pinata.cloud',
+  });
   console.log('Pinata client initialized successfully');
 } catch (error) {
   console.error('Error initializing Pinata client:', error.message);
@@ -319,9 +322,9 @@ app.post('/games', async (req, res) => {
     }
     if (!pinata) throw new Error('Pinata client not initialized');
     console.log('Uploading questions to Pinata');
-    const pinataResult = await pinata.pinJSONToIPFS({ questions });
-    console.log('Pinata upload successful, CID:', pinataResult.IpfsHash);
-    res.json({ gameId, questionHashes, ipfsCid: pinataResult.IpfsHash });
+    const pinataResult = await pinata.json.pin({ questions });
+    console.log('Pinata upload successful, CID:', pinataResult.cid);
+    res.json({ gameId, questionHashes, ipfsCid: pinataResult.cid });
   } catch (error) {
     console.error('Error in /games endpoint:', error.message, error.stack);
     res.status(500).json({

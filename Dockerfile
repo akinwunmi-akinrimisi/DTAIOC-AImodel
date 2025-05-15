@@ -1,13 +1,16 @@
-# Use a base image with both Node.js and Python
-FROM nikolaik/python-nodejs:python3.12-nodejs22
+FROM python:3.12-slim
 
-# Set working directory
 WORKDIR /app
 
-# Copy package.json and requirements.txt
-COPY package.json requirements.txt ./
+# Install Node.js
+RUN apt-get update && apt-get install -y curl && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js and Python dependencies
+# Copy package.json and install Node.js dependencies
+COPY package.json .
+ENV HUSKY=0
 RUN npm install && \
     pip cache purge && \
     python3.12 -m pip install --no-cache-dir -r requirements.txt
@@ -15,11 +18,8 @@ RUN npm install && \
 # Copy the rest of the application
 COPY . .
 
-# Create abis directory to avoid permission issues
-RUN mkdir -p abis
+# Expose port
+EXPOSE 10000
 
-# Expose port (Render assigns dynamic port)
-EXPOSE 3000
-
-# Start the server
+# Start the application
 CMD ["node", "server.js"]
