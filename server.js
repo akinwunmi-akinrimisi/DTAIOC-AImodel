@@ -11,7 +11,7 @@ const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const { ethers } = require('ethers');
 const { BiconomySmartAccountV2 } = require('@biconomy/account');
-const { BiconomyBundler } = require('@biconomy/bundler');
+const { Bundler } = require('@biconomy/bundler'); // Changed from BiconomyBundler
 
 const execPromise = util.promisify(exec);
 
@@ -536,13 +536,14 @@ app.post('/games/:gameId/mint', async (req, res) => {
     console.log(`Signer initialized for address: ${await signer.getAddress()}`);
 
     // Initialize Biconomy Bundler
-    const bundler = new BiconomyBundler({
+    console.log('Initializing bundler with:', process.env.BUNDLER_URL);
+    const bundler = new Bundler({
       bundlerUrl: process.env.BUNDLER_URL,
       chainId: 84532,
       entryPointAddress,
     });
-    console.log(`Bundler initialized with URL: ${process.env.BUNDLER_URL}`);
-    console.log(`Bundler methods: ${Object.keys(bundler).filter(k => typeof bundler[k] === 'function')}`);
+    console.log(`Bundler initialized: ${Object.keys(bundler)}`);
+    console.log(`Bundler estimateUserOpGas: ${typeof bundler.estimateUserOpGas}`);
 
     // Initialize Biconomy Smart Account
     const biconomyConfig = {
