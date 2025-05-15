@@ -10,6 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const { ethers } = require('ethers');
+const { BiconomySmartAccountV2, DEFAULT_ENTRYPOINT_ADDRESS } = require('@biconomy/account');
 
 const execPromise = util.promisify(exec);
 
@@ -153,6 +154,7 @@ app.get('/health', (req, res) => {
     PINATA_JWT: !!process.env.PINATA_JWT,
     OPENAI_API_KEY: !!process.env.OPENAI_API_KEY,
     ALCHEMY_API_KEY: !!process.env.ALCHEMY_API_KEY,
+    BUNDLER_URL: !!process.env.BUNDLER_URL,
   };
   res.json({ status: 'ok', env: envStatus });
 });
@@ -490,34 +492,42 @@ app.post('/games/:gameId/mint', async (req, res) => {
       console.error('Mint endpoint error: Minting is paused');
       return res.status(400).json({ error: 'Minting is paused on the contract' });
     }
-    const userOp = {
-      sender: walletAddress,
-      nonce: ethers.utils.hexlify(await provider.getTransactionCount(walletAddress, 'latest')),
-      callData: tokenContract.interface.encodeFunctionData('mint', [ethers.utils.parseUnits(amount.toString(), 18)]),
-      callGasLimit: ethers.utils.hexlify(200000),
-      verificationGasLimit: ethers.utils.hexlify(100000),
-      preVerificationGas: ethers.utils.hexlify(21000),
-      maxFeePerGas: ethers.utils.hexlify(1000000000),
-      maxPriorityFeePerGas: ethers.utils.hexlify(1000000000),
-      paymasterAndData: paymasterAddress,
-      signature: '0x'
+
+    // Initialize Biconomy Smart Account
+    const config = {
+      privateKey: process.env.SIGNER_PRIVATE_KEY, // Add a signer private key in .env
+      bundlerUrl: process.env.BUNDLER_URL,
+      biconomyPaymasterApiKey: process.env.BICONOMY_PAYMASTER_API_KEY, // Add paymaster API key
     };
-    console.log(`Submitting UserOperation for ${username} to mint ${amount} tokens:`, JSON.stringify(userOp, null, 2));
-    const response = await fetch(process.env.BUNDLER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'eth_sendUserOperation',
-        params: [userOp, entryPointAddress]
-      })
+    const smartAccount = await BiconomySmartAccountV2.create({
+      chainId: 84532, // Base Sepolia
+      entryPointAddress,
+      provider,
+      privateKey: config.privateKey,
+      bundler: { url: config.bundlerUrl },
+      paymaster: { paymasterUrl: `https://paymaster.biconomy.io/api/v1/84532/${config.biconomyPaymasterApiKey}` },
     });
-    const result = await response.json();
-    if (result.error) throw new Error(JSON.stringify(result.error));
-    const tx = await provider.waitForTransaction(result.result);
-    console.log(`Tokens minted for ${username}, tx: ${tx.transactionHash}`);
-    res.json({ transactionHash: tx.transactionHash });
+
+    // Build UserOperation
+    const callData = tokenContract.interface.encodeFunctionData('mint', [ethers.utils.parseUnits(amount.toString(), 18)]);
+    const tx = {
+      to: contracts.DTAIOCToken,
+      data: callData,
+    };
+    const userOpResponse = await smartAccount.buildUserOp([tx], {
+      paymasterServiceData: { mode: 'SPONSOR' },
+    });
+
+    console.log(`Submitting UserOperation for ${username} to mint ${amount} tokens:`, JSON.stringify(userOpResponse, null, 2));
+
+    // Send UserOperation
+    const bundlerResponse = await smartAccount.sendUserOp(userOpResponse);
+    console.log(`Bundler response:`, bundlerResponse);
+
+    // Wait for transaction
+    const receipt = await bundlerResponse.wait();
+    console.log(`Tokens minted for ${username}, tx: ${receipt.transactionHash}`);
+    res.json({ transactionHash: receipt.transactionHash });
   } catch (error) {
     console.error('Error in /mint endpoint:', error.message, error.stack);
     res.status(500).json({ error: `Failed to mint tokens: ${error.message}` });
