@@ -10,7 +10,7 @@ const fs = require('fs');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const { ethers } = require('ethers');
-const { BiconomySmartAccountV2, DEFAULT_ENTRYPOINT_ADDRESS } = require('@biconomy/account');
+const { BiconomySmartAccountV2 } = require('@biconomy/account');
 
 const execPromise = util.promisify(exec);
 
@@ -149,12 +149,14 @@ app.get('/health', (req, res) => {
   const envStatus = {
     X_CLIENT_ID: !!process.env.X_CLIENT_ID,
     X_CLIENT_SECRET: !!process.env.X_CLIENT_SECRET,
-    X_REDIRECT_URI: process.env.X_REDIRECT_URI,
+    X_REDIRECT_URI: !!process.env.X_REDIRECT_URI,
     DB_NAME: !!process.env.DB_NAME,
     PINATA_JWT: !!process.env.PINATA_JWT,
     OPENAI_API_KEY: !!process.env.OPENAI_API_KEY,
     ALCHEMY_API_KEY: !!process.env.ALCHEMY_API_KEY,
     BUNDLER_URL: !!process.env.BUNDLER_URL,
+    SIGNER_PRIVATE_KEY: !!process.env.SIGNER_PRIVATE_KEY,
+    BICONOMY_PAYMASTER_API_KEY: !!process.env.BICONOMY_PAYMASTER_API_KEY,
   };
   res.json({ status: 'ok', env: envStatus });
 });
@@ -458,12 +460,26 @@ app.post('/games/:gameId/mint', async (req, res) => {
     return res.status(400).json({ error: 'Username and amount are required' });
   }
   try {
+    // Validate environment variables
+    if (!process.env.SIGNER_PRIVATE_KEY) {
+      throw new Error('SIGNER_PRIVATE_KEY environment variable is not set');
+    }
+    if (!process.env.BICONOMY_PAYMASTER_API_KEY) {
+      throw new Error('BICONOMY_PAYMASTER_API_KEY environment variable is not set');
+    }
+    if (!process.env.BUNDLER_URL) {
+      throw new Error('BUNDLER_URL environment variable is not set');
+    }
+
+    // Validate user and wallet
     const userResult = await pool.query('SELECT wallet_address FROM users WHERE username = $1', [username]);
     if (userResult.rows.length === 0 || !userResult.rows[0].wallet_address) {
       console.error(`Mint endpoint error: User ${username} not authenticated or no wallet address`);
       return res.status(401).json({ error: 'User not authenticated or no wallet address set. Please authenticate via /auth/login and set wallet address' });
     }
     const walletAddress = userResult.rows[0].wallet_address;
+
+    // Validate game
     const gameResult = await pool.query('SELECT end_time FROM games WHERE id = $1', [gameId]);
     if (gameResult.rows.length === 0) {
       console.error(`Mint endpoint error: Game ${gameId} not found`);
@@ -474,6 +490,8 @@ app.post('/games/:gameId/mint', async (req, res) => {
       console.error(`Mint endpoint error: Game ${gameId} has not ended`);
       return res.status(400).json({ error: 'Game has not ended' });
     }
+
+    // Validate leaderboard eligibility
     const leaderboardResult = await pool.query(
       'SELECT username FROM (SELECT username, MAX(score) as score FROM submissions WHERE game_id = $1 GROUP BY username ORDER BY score DESC LIMIT 3) as top WHERE username = $2',
       [gameId, username]
@@ -482,50 +500,67 @@ app.post('/games/:gameId/mint', async (req, res) => {
       console.error(`Mint endpoint error: User ${username} is not eligible to mint`);
       return res.status(401).json({ error: 'User is not eligible to mint tokens' });
     }
+
+    // Validate token contract
     const tokenContract = contractInstances.DTAIOCToken;
     if (!tokenContract) {
       console.error('Mint endpoint error: DTAIOCToken contract not initialized');
       return res.status(500).json({ error: 'Token contract not initialized' });
     }
+
+    // Check minting paused
     const isPaused = await tokenContract.mintingPaused();
     if (isPaused) {
       console.error('Mint endpoint error: Minting is paused');
       return res.status(400).json({ error: 'Minting is paused on the contract' });
     }
 
+    // Check minimum balance requirement
+    const minBalance = await tokenContract.MIN_BALANCE_FOR_MINT();
+    const balance = await provider.getBalance(walletAddress);
+    if (balance.lt(minBalance)) {
+      console.error(`Mint endpoint error: Insufficient balance for ${username}`);
+      return res.status(400).json({ error: `Insufficient balance: ${ethers.utils.formatEther(balance)} ETH, required: ${ethers.utils.formatEther(minBalance)} ETH` });
+    }
+
+    // Initialize signer
+    const signer = new ethers.Wallet(process.env.SIGNER_PRIVATE_KEY, provider);
+    console.log(`Signer initialized for address: ${await signer.getAddress()}`);
+
     // Initialize Biconomy Smart Account
-    const config = {
-      privateKey: process.env.SIGNER_PRIVATE_KEY, // Add a signer private key in .env
-      bundlerUrl: process.env.BUNDLER_URL,
-      biconomyPaymasterApiKey: process.env.BICONOMY_PAYMASTER_API_KEY, // Add paymaster API key
-    };
-    const smartAccount = await BiconomySmartAccountV2.create({
+    const biconomyConfig = {
       chainId: 84532, // Base Sepolia
       entryPointAddress,
-      provider,
-      privateKey: config.privateKey,
-      bundler: { url: config.bundlerUrl },
-      paymaster: { paymasterUrl: `https://paymaster.biconomy.io/api/v1/84532/${config.biconomyPaymasterApiKey}` },
+      signer,
+      bundlerUrl: process.env.BUNDLER_URL,
+      paymasterUrl: `https://paymaster.biconomy.io/api/v1/84532/${process.env.BICONOMY_PAYMASTER_API_KEY}`,
+    };
+    const smartAccount = await BiconomySmartAccountV2.create({
+      chainId: biconomyConfig.chainId,
+      entryPointAddress: biconomyConfig.entryPointAddress,
+      signer: biconomyConfig.signer,
+      bundler: { url: biconomyConfig.bundlerUrl },
+      paymaster: { paymasterUrl: biconomyConfig.paymasterUrl },
     });
+    console.log(`Smart account initialized for address: ${await smartAccount.getAccountAddress()}`);
 
-    // Build UserOperation
-    const callData = tokenContract.interface.encodeFunctionData('mint', [ethers.utils.parseUnits(amount.toString(), 18)]);
+    // Prepare transaction
+    const callData = tokenContract.interface.encodeFunctionData('mint', [
+      ethers.utils.parseUnits(amount.toString(), 18)
+    ]);
     const tx = {
       to: contracts.DTAIOCToken,
       data: callData,
     };
-    const userOpResponse = await smartAccount.buildUserOp([tx], {
-      paymasterServiceData: { mode: 'SPONSOR' },
+
+    // Send transaction with paymaster
+    console.log(`Submitting transaction for ${username} to mint ${amount} tokens`);
+    const userOpResponse = await smartAccount.sendTransaction(tx, {
+      paymasterServiceData: { mode: 'SPONSORED' },
     });
 
-    console.log(`Submitting UserOperation for ${username} to mint ${amount} tokens:`, JSON.stringify(userOpResponse, null, 2));
-
-    // Send UserOperation
-    const bundlerResponse = await smartAccount.sendUserOp(userOpResponse);
-    console.log(`Bundler response:`, bundlerResponse);
-
     // Wait for transaction
-    const receipt = await bundlerResponse.wait();
+    const receipt = await userOpResponse.wait();
     console.log(`Tokens minted for ${username}, tx: ${receipt.transactionHash}`);
     res.json({ transactionHash: receipt.transactionHash });
   } catch (error) {
