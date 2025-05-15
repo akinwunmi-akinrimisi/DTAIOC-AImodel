@@ -10,8 +10,6 @@ const fs = require('fs');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const { ethers } = require('ethers');
-const { BiconomySmartAccountV2 } = require('@biconomy/account');
-const { Bundler } = require('@biconomy/bundler');
 
 const execPromise = util.promisify(exec);
 
@@ -104,8 +102,6 @@ const contracts = {
   IBasenameResolver: '0xE2d6C0aF79bf5CA534B591B5A86bd467B308aB8F',
   DTAIOCGame: '0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78',
 };
-const entryPointAddress = '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789';
-const paymasterAddress = '0xB2314387E65847eaA006c850376298abd7e0BcAe';
 const abis = {};
 const contractInstances = {};
 for (const [name, address] of Object.entries(contracts)) {
@@ -158,9 +154,7 @@ app.get('/health', (req, res) => {
     PINATA_JWT: !!process.env.PINATA_JWT,
     OPENAI_API_KEY: !!process.env.OPENAI_API_KEY,
     ALCHEMY_API_KEY: !!process.env.ALCHEMY_API_KEY,
-    BUNDLER_URL: !!process.env.BUNDLER_URL,
     SIGNER_PRIVATE_KEY: !!process.env.SIGNER_PRIVATE_KEY,
-    BICONOMY_PAYMASTER_API_KEY: !!process.env.BICONOMY_PAYMASTER_API_KEY,
   };
   res.json({ status: 'ok', env: envStatus });
 });
@@ -468,12 +462,6 @@ app.post('/games/:gameId/mint', async (req, res) => {
     if (!process.env.SIGNER_PRIVATE_KEY) {
       throw new Error('SIGNER_PRIVATE_KEY environment variable is not set');
     }
-    if (!process.env.BICONOMY_PAYMASTER_API_KEY) {
-      throw new Error('BICONOMY_PAYMASTER_API_KEY environment variable is not set');
-    }
-    if (!process.env.BUNDLER_URL) {
-      throw new Error('BUNDLER_URL environment variable is not set');
-    }
 
     // Validate user and wallet
     const userResult = await pool.query('SELECT wallet_address FROM users WHERE username = $1', [username]);
@@ -535,75 +523,13 @@ app.post('/games/:gameId/mint', async (req, res) => {
     const signer = new ethers.Wallet(process.env.SIGNER_PRIVATE_KEY, provider);
     console.log(`Signer initialized for address: ${await signer.getAddress()}`);
 
-    // Initialize Biconomy Bundler
-    console.log('Initializing bundler with:', process.env.BUNDLER_URL);
-    const bundler = new Bundler({
-      bundlerUrl: process.env.BUNDLER_URL,
-      chainId: 84532,
-      entryPointAddress,
-    });
-    console.log(`Bundler initialized: ${Object.keys(bundler)}`);
-    console.log(`Bundler estimateUserOpGas: ${typeof bundler.estimateUserOpGas}`);
+    // Connect contract with signer
+    const tokenContractWithSigner = tokenContract.connect(signer);
 
-    // Initialize Biconomy Smart Account
-    const biconomyConfig = {
-      chainId: 84532,
-      entryPointAddress,
-      signer,
-      paymasterUrl: `https://paymaster.biconomy.io/api/v1/84532/${process.env.BICONOMY_PAYMASTER_API_KEY}`,
-    };
-    console.log(`Initializing smart account with bundler URL: ${process.env.BUNDLER_URL}`);
-    const smartAccount = await BiconomySmartAccountV2.create({
-      chainId: biconomyConfig.chainId,
-      entryPointAddress: biconomyConfig.entryPointAddress,
-      signer: biconomyConfig.signer,
-      bundler,
-      paymaster: { paymasterUrl: biconomyConfig.paymasterUrl },
-    }).catch(error => {
-      throw new Error(`Failed to initialize smart account: ${error.message}`);
-    });
-    console.log(`Smart account initialized for address: ${await smartAccount.getAccountAddress()}`);
-
-    // Verify bundler functionality
-    if (!smartAccount.bundler || typeof smartAccount.bundler.estimateUserOpGas !== 'function') {
-      console.error('Bundler missing estimateUserOpGas method');
-      throw new Error('Invalid bundler configuration: estimateUserOpGas is not available');
-    }
-
-    // Prepare transaction
-    const callData = tokenContract.interface.encodeFunctionData('mint', [
-      ethers.utils.parseUnits(amount.toString(), 18)
-    ]);
-    const tx = {
-      to: contracts.DTAIOCToken,
-      data: callData,
-    };
-
-    // Debug gas estimation
-    console.log('Estimating UserOp gas for transaction:', tx);
-    let gasEstimates;
-    try {
-      gasEstimates = await bundler.estimateUserOpGas({
-        transactions: [tx],
-        sender: await smartAccount.getAccountAddress(),
-        chainId: 84532,
-      });
-      console.log('Gas estimates:', gasEstimates);
-    } catch (error) {
-      console.error('Gas estimation failed:', error.message);
-      throw new Error(`Gas estimation failed: ${error.message}`);
-    }
-
-    // Send transaction with paymaster
-    console.log(`Submitting transaction for ${username} to mint ${amount} DTAIOC tokens`);
-    const userOpResponse = await smartAccount.sendTransaction(tx, {
-      paymasterServiceData: { mode: 'SPONSORED' },
-    }).catch(error => {
-      throw new Error(`Transaction submission failed: ${error.message}`);
-    });
-
-    // Wait for transaction
-    const receipt = await userOpResponse.wait();
+    // Mint tokens
+    console.log(`Submitting transaction for ${username} to mint ${amount} DTAIOC tokens to ${walletAddress}`);
+    const tx = await tokenContractWithSigner.mint(ethers.utils.parseUnits(amount.toString(), 18));
+    const receipt = await tx.wait();
     console.log(`Tokens minted for ${username}, tx: ${receipt.transactionHash}`);
     res.json({ transactionHash: receipt.transactionHash });
   } catch (error) {
