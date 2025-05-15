@@ -2,18 +2,17 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install Node.js
 RUN apt-get update && apt-get install -y curl && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy package.json and requirements.txt
-COPY package.json requirements.txt ./
+COPY package.json  .
+COPY requirements.txt .
 
-# Install dependencies
 ENV HUSKY=0
-RUN npm install && \
+RUN npm cache clean --force && \
+    npm install && \
     pip cache purge && \
     python3.12 -m pip install --no-cache-dir -r requirements.txt
 
