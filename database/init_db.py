@@ -1,45 +1,48 @@
+import os
 import psycopg2
 from psycopg2 import sql
-import os
-from dotenv import load_dotenv
+from urllib.parse import urlparse
 
-load_dotenv('config/.env')
+# Database connection parameters from environment variables
+db_params = {
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': os.getenv('DB_HOST'),
+    'port': os.getenv('DB_PORT'),
+    'database': os.getenv('DB_NAME'),
+    'sslmode': 'require'
+}
 
-def init_db():
+def create_tables():
     try:
-        conn = psycopg2.connect(
-            dbname=os.getenv("DB_NAME"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD"),
-            host=os.getenv("DB_HOST"),
-            port=os.getenv("DB_PORT")
-        )
+        # Connect to PostgreSQL
+        conn = psycopg2.connect(**db_params)
         cursor = conn.cursor()
 
-        # Create users table for OAuth tokens and wallet address
+        # Create users table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
-                username VARCHAR(255) PRIMARY KEY,
-                access_token TEXT NOT NULL,
-                refresh_token TEXT NOT NULL,
-                expires_at TIMESTAMP NOT NULL,
-                wallet_address VARCHAR(42),
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                username TEXT PRIMARY KEY,
+                access_token TEXT,
+                refresh_token TEXT,
+                expires_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                wallet_address TEXT
             );
         """)
 
-        # Create games table with end_time
+        # Create games table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS games (
                 id SERIAL PRIMARY KEY,
-                basename VARCHAR(255) NOT NULL,
+                basename TEXT NOT NULL,
                 stake_amount INTEGER NOT NULL,
                 player_limit INTEGER NOT NULL,
                 duration INTEGER NOT NULL,
-                status VARCHAR(50) NOT NULL,
-                ipfs_cid VARCHAR(255),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                end_time TIMESTAMP
+                status TEXT NOT NULL,
+                end_time TIMESTAMP NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
 
@@ -47,25 +50,11 @@ def init_db():
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS questions (
                 id SERIAL PRIMARY KEY,
-                game_id INTEGER REFERENCES games(id) ON DELETE CASCADE,
+                game_id INTEGER REFERENCES games(id),
                 question_text TEXT NOT NULL,
                 options TEXT[] NOT NULL,
-                correct_answer INTEGER NOT NULL,
-                hash VARCHAR(66) NOT NULL,
-                ipfs_cid VARCHAR(255),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-        """)
-
-        # Create submissions table
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS submissions (
-                id SERIAL PRIMARY KEY,
-                game_id INTEGER REFERENCES games(id) ON DELETE CASCADE,
-                username VARCHAR(255) REFERENCES users(username),
-                stage INTEGER NOT NULL,
-                score INTEGER NOT NULL,
-                answer_hashes TEXT[] NOT NULL,
+                correct_answer TEXT NOT NULL,
+                hash TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
@@ -73,22 +62,36 @@ def init_db():
         # Create game_participants table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS game_participants (
-                game_id INTEGER REFERENCES games(id) ON DELETE CASCADE,
-                username VARCHAR(255) REFERENCES users(username),
+                game_id INTEGER REFERENCES games(id),
+                username TEXT REFERENCES users(username),
                 joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (game_id, username)
             );
         """)
 
+        # Create submissions table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS submissions (
+                id SERIAL PRIMARY KEY,
+                game_id INTEGER REFERENCES games(id),
+                username TEXT REFERENCES users(username),
+                stage INTEGER NOT NULL,
+                score INTEGER NOT NULL,
+                answer_hashes TEXT[] NOT NULL,
+                submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+
+        # Commit changes
         conn.commit()
-        print("Database initialized successfully")
+        print("Database tables created successfully")
+
     except Exception as e:
-        print(f"Error initializing database: {e}")
+        print(f"Error creating tables: {e}")
+        conn.rollback()
     finally:
-        if 'cursor' in locals():
-            cursor.close()
-        if 'conn' in locals():
-            conn.close()
+        cursor.close()
+        conn.close()
 
 if __name__ == "__main__":
-    init_db()
+    create_tables()

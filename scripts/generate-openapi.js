@@ -7,7 +7,7 @@ const contracts = {
   DTAIOCStaking: "0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
   IBasenameResolver: "0xE2d6C0aF79bf5CA534B591B5A86bd467B308aB8F",
   DTAIOCGame: "0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-  // PlatformAddress: "0x37706dAb5DA56EcCa562f4f26478d1C484f0A7fB",
+  PlatformAddress: "0x37706dAb5DA56EcCa562f4f26478d1C484f0A7fB",
 };
 
 function loadLocalAbi(contractName) {

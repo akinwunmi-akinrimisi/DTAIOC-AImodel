@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package.json requirements.txt ./
 
 # Install Node.js and Python dependencies
-RUN npm install --legacy-peer-deps && \
+RUN npm install && \
     pip cache purge && \
     python3.12 -m pip install --no-cache-dir -r requirements.txt
 
