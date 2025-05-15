@@ -485,32 +485,36 @@ app.post('/games/:gameId/mint', async (req, res) => {
       console.error('Mint endpoint error: DTAIOCToken contract not initialized');
       return res.status(500).json({ error: 'Token contract not initialized' });
     }
+    const isPaused = await tokenContract.mintingPaused();
+    if (isPaused) {
+      console.error('Mint endpoint error: Minting is paused');
+      return res.status(400).json({ error: 'Minting is paused on the contract' });
+    }
     const userOp = {
       sender: walletAddress,
-      nonce: ethers.BigNumber.from(await provider.getTransactionCount(walletAddress, 'latest')).toHexString(),
-      initCode: '0x',
+      nonce: ethers.utils.hexlify(await provider.getTransactionCount(walletAddress, 'latest')),
       callData: tokenContract.interface.encodeFunctionData('mint', [ethers.utils.parseUnits(amount.toString(), 18)]),
       callGasLimit: ethers.utils.hexlify(200000),
       verificationGasLimit: ethers.utils.hexlify(100000),
       preVerificationGas: ethers.utils.hexlify(21000),
       maxFeePerGas: ethers.utils.hexlify(1000000000),
       maxPriorityFeePerGas: ethers.utils.hexlify(1000000000),
-      paymasterAndData: paymasterAddress + '0x',
+      paymasterAndData: paymasterAddress,
       signature: '0x'
     };
-    console.log(`Submitting UserOperation for ${username} to mint ${amount} tokens`);
+    console.log(`Submitting UserOperation for ${username} to mint ${amount} tokens:`, JSON.stringify(userOp, null, 2));
     const response = await fetch(process.env.BUNDLER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         jsonrpc: '2.0',
+        id: 1,
         method: 'eth_sendUserOperation',
-        params: [userOp, entryPointAddress],
-        id: 1
+        params: [userOp, entryPointAddress]
       })
     });
     const result = await response.json();
-    if (result.error) throw new Error(result.error.message);
+    if (result.error) throw new Error(JSON.stringify(result.error));
     const tx = await provider.waitForTransaction(result.result);
     console.log(`Tokens minted for ${username}, tx: ${tx.transactionHash}`);
     res.json({ transactionHash: tx.transactionHash });
