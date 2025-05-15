@@ -238,7 +238,7 @@ app.post('/games', async (req, res) => {
     console.log(`Fetching user ID for username: ${username}`);
     const userResponse = await userClient.v2.userByUsername(username);
     const userId = userResponse.data.id;
-    if (!userId) throw new Error(`Usernesi ID not found for username: ${username}`);
+    if (!userId) throw new Error(`User ID not found for username: ${username}`);
     console.log(`Fetching up to 6 tweets for user ID: ${userId}`);
     const tweetsResponse = await userClient.v2.userTimeline(userId, { max_results: 6 }).catch(error => {
       if (error.data && error.data.status === 429) throw error;
@@ -494,21 +494,21 @@ app.post('/games/:gameId/mint', async (req, res) => {
       signature: '0x'
     };
     console.log(`Submitting UserOperation for ${username} to mint ${amount} tokens`);
-      const response = await fetch('BUNDLER_URL', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          method: 'eth_sendUserOperation',
-          params: [userOp, entryPointAddress],
-          id: 1
-        })
-      });
-      const result = await response.json();
-      if (result.error) throw new Error(result.error.message);
-      const tx = await provider.waitForTransaction(result.result);
-      console.log(`Tokens minted for ${username}, tx: ${tx.transactionHash}`);
-      res.json({ transactionHash: tx.transactionHash });
+    const response = await fetch(process.env.BUNDLER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'eth_sendUserOperation',
+        params: [userOp, entryPointAddress],
+        id: 1
+      })
+    });
+    const result = await response.json();
+    if (result.error) throw new Error(result.error.message);
+    const tx = await provider.waitForTransaction(result.result);
+    console.log(`Tokens minted for ${username}, tx: ${tx.transactionHash}`);
+    res.json({ transactionHash: tx.transactionHash });
   } catch (error) {
     console.error('Error in /mint endpoint:', error.message, error.stack);
     res.status(500).json({ error: `Failed to mint tokens: ${error.message}` });
