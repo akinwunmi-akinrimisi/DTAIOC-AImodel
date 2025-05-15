@@ -8,8 +8,10 @@ RUN apt-get update && apt-get install -y curl && \
     apt-get install -y nodejs && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Copy package.json and install Node.js dependencies
-COPY package.json .
+# Copy package.json and requirements.txt
+COPY package.json requirements.txt ./
+
+# Install dependencies
 ENV HUSKY=0
 RUN npm install && \
     pip cache purge && \
