@@ -124,7 +124,7 @@ for (const [name, address] of Object.entries(contracts)) {
 }
 
 // Store OAuth state
-const oauthStates = new आहे
+const oauthStates = new Map();
 
 // Refresh token function
 async function refreshUserToken(username, refreshToken) {
