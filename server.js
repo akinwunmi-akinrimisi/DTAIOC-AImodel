@@ -515,12 +515,16 @@ app.post('/games/:gameId/mint', async (req, res) => {
       return res.status(400).json({ error: 'Minting is paused on the contract' });
     }
 
-    // Check minimum balance requirement
+    // Check DTAIOC token balance requirement
     const minBalance = await tokenContract.MIN_BALANCE_FOR_MINT();
-    const balance = await provider.getBalance(walletAddress);
-    if (balance.lt(minBalance)) {
-      console.error(`Mint endpoint error: Insufficient balance for ${username}`);
-      return res.status(400).json({ error: `Insufficient balance: ${ethers.utils.formatEther(balance)} ETH, required: ${ethers.utils.formatEther(minBalance)} ETH` });
+    const balance = await tokenContract.balanceOf(walletAddress);
+    console.log(`Checking DTAIOC balance for ${walletAddress}: ${ethers.utils.formatUnits(balance, 18)} DTAIOC, max allowed: ${ethers.utils.formatUnits(minBalance, 18)} DTAIOC`);
+    if (balance.gt(minBalance)) {
+      console.error(`Mint endpoint error: DTAIOC balance too high for ${username}`);
+      return res.status(400).json({ 
+        error: `DTAIOC balance too high: ${ethers.utils.formatUnits(balance, 18)} DTAIOC, must be ${ethers.utils.formatUnits(minBalance, 18)} DTAIOC or less to mint`,
+        suggestion: 'Spend or transfer DTAIOC tokens to reduce your balance to 10 DTAIOC or less.'
+      });
     }
 
     // Initialize signer
@@ -554,7 +558,7 @@ app.post('/games/:gameId/mint', async (req, res) => {
     };
 
     // Send transaction with paymaster
-    console.log(`Submitting transaction for ${username} to mint ${amount} tokens`);
+    console.log(`Submitting transaction for ${username} to mint ${amount} DTAIOC tokens`);
     const userOpResponse = await smartAccount.sendTransaction(tx, {
       paymasterServiceData: { mode: 'SPONSORED' },
     });
