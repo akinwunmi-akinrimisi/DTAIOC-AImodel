@@ -1,8 +1,4 @@
-{
-  "_format": "hh-sol-artifact-1",
-  "contractName": "IEntryPoint",
-  "sourceName": "contracts/BasePaymaster.sol",
-  "abi": [
+ [
     {
       "inputs": [
         {
@@ -16,9 +12,4 @@
       "stateMutability": "payable",
       "type": "function"
     }
-  ],
-  "bytecode": "0x",
-  "deployedBytecode": "0x",
-  "linkReferences": {},
-  "deployedLinkReferences": {}
-}
+  ]
