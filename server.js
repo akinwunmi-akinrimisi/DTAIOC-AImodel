@@ -86,7 +86,12 @@ const twitterClient = new TwitterApi({
 });
 
 // Web3 configuration
-const provider = new ethers.providers.JsonRpcProvider(`https://base-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`);
+const providerUrl = `https://base-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`;
+console.log('Initializing provider with URL:', providerUrl.replace(process.env.ALCHEMY_API_KEY, '[REDACTED]'));
+const provider = new ethers.providers.JsonRpcProvider(providerUrl);
+provider.on('error', (error) => {
+  console.error('Provider error:', error.message);
+});
 const contracts = {
   DTAIOCToken: '0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c',
   DTAIOCNFT: '0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1',
@@ -482,9 +487,9 @@ app.post('/games/:gameId/mint', async (req, res) => {
     }
     const userOp = {
       sender: walletAddress,
-      nonce: await provider.getTransactionCount(walletAddress),
+      nonce: ethers.BigNumber.from(await provider.getTransactionCount(walletAddress, 'latest')).toHexString(),
       initCode: '0x',
-      callData: tokenContract.interface.encodeFunctionData('mint', [walletAddress, ethers.utils.parseUnits(amount.toString(), 18)]),
+      callData: tokenContract.interface.encodeFunctionData('mint', [ethers.utils.parseUnits(amount.toString(), 18)]),
       callGasLimit: ethers.utils.hexlify(200000),
       verificationGasLimit: ethers.utils.hexlify(100000),
       preVerificationGas: ethers.utils.hexlify(21000),
