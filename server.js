@@ -11,7 +11,6 @@ const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const { ethers } = require('ethers');
 const { BiconomySmartAccountV2 } = require('@biconomy/account');
-const { BiconomyBundler } = require('@biconomy/bundler');
 
 const execPromise = util.promisify(exec);
 
@@ -532,30 +531,31 @@ app.post('/games/:gameId/mint', async (req, res) => {
     const signer = new ethers.Wallet(process.env.SIGNER_PRIVATE_KEY, provider);
     console.log(`Signer initialized for address: ${await signer.getAddress()}`);
 
-    // Initialize Biconomy Bundler
-    const bundler = new BiconomyBundler({
-      bundlerUrl: process.env.BUNDLER_URL,
-      chainId: 84532,
-      entryPointAddress,
-    });
-    console.log(`Bundler initialized with URL: ${process.env.BUNDLER_URL}`);
-
     // Initialize Biconomy Smart Account
     const biconomyConfig = {
       chainId: 84532, // Base Sepolia
       entryPointAddress,
       signer,
-      bundler,
+      bundlerUrl: process.env.BUNDLER_URL,
       paymasterUrl: `https://paymaster.biconomy.io/api/v1/84532/${process.env.BICONOMY_PAYMASTER_API_KEY}`,
     };
+    console.log(`Initializing smart account with bundler URL: ${biconomyConfig.bundlerUrl}`);
     const smartAccount = await BiconomySmartAccountV2.create({
       chainId: biconomyConfig.chainId,
       entryPointAddress: biconomyConfig.entryPointAddress,
       signer: biconomyConfig.signer,
-      bundler: biconomyConfig.bundler,
+      bundler: { url: biconomyConfig.bundlerUrl },
       paymaster: { paymasterUrl: biconomyConfig.paymasterUrl },
+    }).catch(error => {
+      throw new Error(`Failed to initialize smart account: ${error.message}`);
     });
     console.log(`Smart account initialized for address: ${await smartAccount.getAccountAddress()}`);
+
+    // Verify bundler functionality
+    if (!smartAccount.bundler || typeof smartAccount.bundler.estimateUserOpGas !== 'function') {
+      console.error('Bundler missing estimateUserOpGas method');
+      throw new Error('Invalid bundler configuration: estimateUserOpGas is not available');
+    }
 
     // Prepare transaction
     const callData = tokenContract.interface.encodeFunctionData('mint', [
@@ -570,6 +570,8 @@ app.post('/games/:gameId/mint', async (req, res) => {
     console.log(`Submitting transaction for ${username} to mint ${amount} DTAIOC tokens`);
     const userOpResponse = await smartAccount.sendTransaction(tx, {
       paymasterServiceData: { mode: 'SPONSORED' },
+    }).catch(error => {
+      throw new Error(`Transaction submission failed: ${error.message}`);
     });
 
     // Wait for transaction

@@ -36,8 +36,7 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "twitter-api-v2": "^1.23.0",
-    "@biconomy/account": "^4.0.0",
-    "@biconomy/bundler": "^4.3.0"
+    "@biconomy/account": "^4.0.0"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^2.0.0",
