@@ -11,7 +11,7 @@ const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const { ethers } = require('ethers');
 const { BiconomySmartAccountV2 } = require('@biconomy/account');
-const { Bundler } = require('@biconomy/bundler'); // Changed from BiconomyBundler
+const { Bundler } = require('@biconomy/bundler');
 
 const execPromise = util.promisify(exec);
 
@@ -547,7 +547,7 @@ app.post('/games/:gameId/mint', async (req, res) => {
 
     // Initialize Biconomy Smart Account
     const biconomyConfig = {
-      chainId: 84532, // Base Sepolia
+      chainId: 84532,
       entryPointAddress,
       signer,
       paymasterUrl: `https://paymaster.biconomy.io/api/v1/84532/${process.env.BICONOMY_PAYMASTER_API_KEY}`,
@@ -578,6 +578,21 @@ app.post('/games/:gameId/mint', async (req, res) => {
       to: contracts.DTAIOCToken,
       data: callData,
     };
+
+    // Debug gas estimation
+    console.log('Estimating UserOp gas for transaction:', tx);
+    let gasEstimates;
+    try {
+      gasEstimates = await bundler.estimateUserOpGas({
+        transactions: [tx],
+        sender: await smartAccount.getAccountAddress(),
+        chainId: 84532,
+      });
+      console.log('Gas estimates:', gasEstimates);
+    } catch (error) {
+      console.error('Gas estimation failed:', error.message);
+      throw new Error(`Gas estimation failed: ${error.message}`);
+    }
 
     // Send transaction with paymaster
     console.log(`Submitting transaction for ${username} to mint ${amount} DTAIOC tokens`);
