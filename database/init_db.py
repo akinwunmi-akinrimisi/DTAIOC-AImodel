@@ -32,6 +32,12 @@ def create_tables():
             );
         """)
 
+        # Ensure wallet_address column exists
+        cursor.execute("""
+            ALTER TABLE users
+            ADD COLUMN IF NOT EXISTS wallet_address TEXT;
+        """)
+
         # Create games table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS games (
