@@ -93,7 +93,6 @@ const contracts = {
   DTAIOCStaking: '0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC',
   IBasenameResolver: '0xE2d6C0aF79bf5CA534B591B5A86bd467B308aB8F',
   DTAIOCGame: '0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78',
-  PlatformAddress: '0x37706dAb5DA56EcCa562f4f26478d1C484f0A7fB',
 };
 const entryPointAddress = '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789';
 const paymasterAddress = '0xB2314387E65847eaA006c850376298abd7e0BcAe';
@@ -239,7 +238,7 @@ app.post('/games', async (req, res) => {
     console.log(`Fetching user ID for username: ${username}`);
     const userResponse = await userClient.v2.userByUsername(username);
     const userId = userResponse.data.id;
-    if (!userId) throw new Error(`User ID not found for username: ${username}`);
+    if (!userId) throw new Error(`Usernesi ID not found for username: ${username}`);
     console.log(`Fetching up to 6 tweets for user ID: ${userId}`);
     const tweetsResponse = await userClient.v2.userTimeline(userId, { max_results: 6 }).catch(error => {
       if (error.data && error.data.status === 429) throw error;
@@ -295,9 +294,10 @@ app.post('/games', async (req, res) => {
     console.log('Inserting game into database');
     const createdAt = new Date();
     const endTime = new Date(createdAt.getTime() + duration * 1000);
+    console.log(`Game creation: createdAt=${createdAt.toISOString()}, duration=${duration}, endTime=${endTime.toISOString()}`);
     const gameResult = await pool.query(
-      'INSERT INTO games (basename, stake_amount, player_limit, duration, status, end_time) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-      [basename, stakeAmount, playerLimit, duration, 'active', endTime]
+      'INSERT INTO games (basename, stake_amount, player_limit, duration, status, end_time, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
+      [basename, stakeAmount, playerLimit, duration, 'active', endTime, createdAt]
     );
     const gameId = gameResult.rows[0].id;
     console.log('Inserting questions into database');
@@ -494,9 +494,21 @@ app.post('/games/:gameId/mint', async (req, res) => {
       signature: '0x'
     };
     console.log(`Submitting UserOperation for ${username} to mint ${amount} tokens`);
-    const tx = { hash: '0xMockTransactionHash' };
-    console.log(`Tokens minted for ${username}, tx: ${tx.hash}`);
-    res.json({ transactionHash: tx.hash });
+      const response = await fetch('BUNDLER_URL', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'eth_sendUserOperation',
+          params: [userOp, entryPointAddress],
+          id: 1
+        })
+      });
+      const result = await response.json();
+      if (result.error) throw new Error(result.error.message);
+      const tx = await provider.waitForTransaction(result.result);
+      console.log(`Tokens minted for ${username}, tx: ${tx.transactionHash}`);
+      res.json({ transactionHash: tx.transactionHash });
   } catch (error) {
     console.error('Error in /mint endpoint:', error.message, error.stack);
     res.status(500).json({ error: `Failed to mint tokens: ${error.message}` });
