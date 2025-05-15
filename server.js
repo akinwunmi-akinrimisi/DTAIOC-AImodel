@@ -124,7 +124,7 @@ for (const [name, address] of Object.entries(contracts)) {
 }
 
 // Store OAuth state
-const oauthStates = new Map();
+const oauthStates = new आहे
 
 // Refresh token function
 async function refreshUserToken(username, refreshToken) {
@@ -526,9 +526,17 @@ app.post('/games/:gameId/mint', async (req, res) => {
     // Connect contract with signer
     const tokenContractWithSigner = tokenContract.connect(signer);
 
-    // Mint tokens
+    // Estimate gas
+    const gasLimit = await tokenContractWithSigner.estimateGas.mint(ethers.utils.parseUnits(amount.toString(), 18));
+    console.log(`Estimated gas limit: ${gasLimit.toString()}`);
+
+    // Mint tokens with optimized gas
     console.log(`Submitting transaction for ${username} to mint ${amount} DTAIOC tokens to ${walletAddress}`);
-    const tx = await tokenContractWithSigner.mint(ethers.utils.parseUnits(amount.toString(), 18));
+    const tx = await tokenContractWithSigner.mint(ethers.utils.parseUnits(amount.toString(), 18), {
+      gasLimit: gasLimit.mul(12).div(10), // 20% buffer
+      maxFeePerGas: ethers.utils.parseUnits("1", "gwei"),
+      maxPriorityFeePerGas: ethers.utils.parseUnits("0.1", "gwei")
+    });
     const receipt = await tx.wait();
     console.log(`Tokens minted for ${username}, tx: ${receipt.transactionHash}`);
     res.json({ transactionHash: receipt.transactionHash });
