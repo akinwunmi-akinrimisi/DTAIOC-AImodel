@@ -519,6 +519,31 @@ app.post('/games/:gameId/mint', async (req, res) => {
       });
     }
 
+    // Check max mint per wallet
+    let maxMintPerWallet, mintedByWallet;
+    try {
+      maxMintPerWallet = await tokenContract.maxMintPerWallet();
+      console.log(`Max mint per wallet: ${ethers.utils.formatUnits(maxMintPerWallet, 18)} DTAIOC`);
+    } catch (e) {
+      console.warn(`maxMintPerWallet() not available: ${e.message}`);
+    }
+    try {
+      mintedByWallet = await tokenContract.mintedPerWallet(walletAddress);
+      console.log(`Minted by wallet ${walletAddress}: ${ethers.utils.formatUnits(mintedByWallet, 18)} DTAIOC`);
+    } catch (e) {
+      console.warn(`mintedPerWallet() not available: ${e.message}`);
+    }
+    if (maxMintPerWallet && mintedByWallet) {
+      const amountToMint = ethers.utils.parseUnits(amount.toString(), 18);
+      if (mintedByWallet.add(amountToMint).gt(maxMintPerWallet)) {
+        console.error(`Mint endpoint error: Exceeds max mint per wallet for ${username}`);
+        return res.status(400).json({
+          error: `Cannot mint ${amount} DTAIOC: exceeds max mint per wallet (${ethers.utils.formatUnits(maxMintPerWallet, 18)} DTAIOC). Already minted: ${ethers.utils.formatUnits(mintedByWallet, 18)} DTAIOC.`,
+          suggestion: 'Use a different wallet or contact support to reset mint limit.'
+        });
+      }
+    }
+
     // Initialize signer
     const signer = new ethers.Wallet(process.env.SIGNER_PRIVATE_KEY, provider);
     console.log(`Signer initialized for address: ${await signer.getAddress()}`);
