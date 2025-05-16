@@ -1,4 +1,4 @@
-[
+ [
     {
       "inputs": [
         {
@@ -12,6 +12,61 @@
     },
     {
       "inputs": [],
+      "name": "InvalidEntryPointCaller",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "userOpHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint8",
+          "name": "mode",
+          "type": "uint8"
+        }
+      ],
+      "name": "PaymasterPostOpCalled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "userOpHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "validationData",
+          "type": "uint256"
+        }
+      ],
+      "name": "PaymasterValidated",
+      "type": "event"
+    },
+    {
+      "inputs": [],
       "name": "entryPoint",
       "outputs": [
         {
@@ -21,6 +76,19 @@
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "mode",
+          "type": "uint8"
+        }
+      ],
+      "name": "postOp",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -84,35 +152,33 @@
             }
           ],
           "internalType": "struct UserOperation",
-          "name": "",
+          "name": "userOp",
           "type": "tuple"
         },
         {
           "internalType": "bytes32",
-          "name": "",
+          "name": "userOpHash",
           "type": "bytes32"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
         }
       ],
       "name": "validatePaymasterUserOp",
       "outputs": [
         {
           "internalType": "bytes",
-          "name": "",
+          "name": "context",
           "type": "bytes"
         },
         {
           "internalType": "uint256",
-          "name": "",
+          "name": "validationData",
           "type": "uint256"
         }
       ],
       "stateMutability": "nonpayable",
       "type": "function"
+    },
+    {
+      "stateMutability": "payable",
+      "type": "receive"
     }
   ]
-

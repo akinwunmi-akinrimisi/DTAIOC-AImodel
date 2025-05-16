@@ -2,40 +2,40 @@
     {
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "gameId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "player",
-          "type": "address"
-        }
-      ],
-      "name": "getPlayer",
-      "outputs": [
-        {
           "internalType": "string",
-          "name": "",
+          "name": "basename",
           "type": "string"
         },
         {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
+          "internalType": "string",
+          "name": "twitterUsername",
+          "type": "string"
+        },
+        {
+          "internalType": "bytes32[3]",
+          "name": "questionRootHashes",
+          "type": "bytes32[3]"
         },
         {
           "internalType": "uint256",
-          "name": "",
+          "name": "gameDuration",
           "type": "uint256"
         },
+        {
+          "internalType": "bytes",
+          "name": "signature",
+          "type": "bytes"
+        }
+      ],
+      "name": "createGame",
+      "outputs": [
         {
           "internalType": "uint256",
           "name": "",
           "type": "uint256"
         }
       ],
-      "stateMutability": "view",
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -46,26 +46,70 @@
           "type": "uint256"
         },
         {
-          "internalType": "address",
-          "name": "player",
-          "type": "address"
+          "internalType": "string",
+          "name": "basename",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "twitterUsername",
+          "type": "string"
+        },
+        {
+          "internalType": "bytes",
+          "name": "signature",
+          "type": "bytes"
+        }
+      ],
+      "name": "joinGame",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "mint",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "gameId",
+          "type": "uint256"
         },
         {
           "internalType": "uint256",
           "name": "stage",
           "type": "uint256"
-        }
-      ],
-      "name": "isPerfectScore",
-      "outputs": [
+        },
         {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
+          "internalType": "bytes32[]",
+          "name": "answerHashes",
+          "type": "bytes32[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "score",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "signature",
+          "type": "bytes"
         }
       ],
-      "stateMutability": "view",
+      "name": "submitAnswers",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     }
   ]
-

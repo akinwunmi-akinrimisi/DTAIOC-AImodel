@@ -1,6 +1,12 @@
- [
+[
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_gameContract",
+          "type": "address"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },
@@ -108,6 +114,21 @@
       "type": "error"
     },
     {
+      "inputs": [],
+      "name": "InvalidAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidRank",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidTokenURI",
+      "type": "error"
+    },
+    {
       "inputs": [
         {
           "internalType": "address",
@@ -127,6 +148,11 @@
         }
       ],
       "name": "OwnableUnauthorizedAccount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "UnauthorizedCaller",
       "type": "error"
     },
     {
@@ -196,6 +222,19 @@
         }
       ],
       "name": "BatchMetadataUpdate",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newGameContract",
+          "type": "address"
+        }
+      ],
+      "name": "GameContractUpdated",
       "type": "event"
     },
     {
@@ -641,4 +680,3 @@
       "type": "function"
     }
   ]
-

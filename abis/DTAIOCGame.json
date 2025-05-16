@@ -1,4 +1,4 @@
- [
+[
     {
       "inputs": [
         {
@@ -37,6 +37,16 @@
     },
     {
       "inputs": [],
+      "name": "AlreadyParticipated",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "DuplicateQuestionHash",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "ECDSAInvalidSignature",
       "type": "error"
     },
@@ -63,6 +73,81 @@
       "type": "error"
     },
     {
+      "inputs": [],
+      "name": "GameAlreadyEnded",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "GameDoesNotExist",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "GameDurationExceeded",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InsufficientAllowance",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InsufficientBalance",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidAnswerCount",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidGameDuration",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidIdentifier",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidQuestionHash",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidScore",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidSignature",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidStage",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "InvalidStringLength",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NotInGame",
+      "type": "error"
+    },
+    {
       "inputs": [
         {
           "internalType": "address",
@@ -86,8 +171,36 @@
     },
     {
       "inputs": [],
+      "name": "PlayerLimitReached",
+      "type": "error"
+    },
+    {
+      "inputs": [],
       "name": "ReentrancyGuardReentrantCall",
       "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "StageMismatch",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "UnauthorizedCaller",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newSigner",
+          "type": "address"
+        }
+      ],
+      "name": "BackendSignerUpdated",
+      "type": "event"
     },
     {
       "anonymous": false,
@@ -109,6 +222,12 @@
           "internalType": "bytes32",
           "name": "basenameNode",
           "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "twitterUsername",
+          "type": "string"
         }
       ],
       "name": "GameCreated",
@@ -184,6 +303,12 @@
           "internalType": "string",
           "name": "basename",
           "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "twitterUsername",
+          "type": "string"
         }
       ],
       "name": "PlayerEliminated",
@@ -208,6 +333,12 @@
           "indexed": false,
           "internalType": "string",
           "name": "basename",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "twitterUsername",
           "type": "string"
         }
       ],
@@ -268,6 +399,12 @@
         },
         {
           "indexed": false,
+          "internalType": "string",
+          "name": "twitterUsername",
+          "type": "string"
+        },
+        {
+          "indexed": false,
           "internalType": "uint256",
           "name": "completionTime",
           "type": "uint256"
@@ -279,6 +416,19 @@
     {
       "inputs": [],
       "name": "DEFAULT_GAME_DURATION",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "MAX_STRING_LENGTH",
       "outputs": [
         {
           "internalType": "uint256",
@@ -383,9 +533,14 @@
     {
       "inputs": [
         {
-          "internalType": "bytes32",
-          "name": "basenameNode",
-          "type": "bytes32"
+          "internalType": "string",
+          "name": "basename",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "twitterUsername",
+          "type": "string"
         },
         {
           "internalType": "bytes32[3]",
@@ -396,6 +551,11 @@
           "internalType": "uint256",
           "name": "_gameDuration",
           "type": "uint256"
+        },
+        {
+          "internalType": "bytes",
+          "name": "signature",
+          "type": "bytes"
         }
       ],
       "name": "createGame",
@@ -454,6 +614,11 @@
           "internalType": "bytes32",
           "name": "basenameNode",
           "type": "bytes32"
+        },
+        {
+          "internalType": "string",
+          "name": "twitterUsername",
+          "type": "string"
         },
         {
           "internalType": "uint256",
@@ -515,6 +680,11 @@
           "type": "string[]"
         },
         {
+          "internalType": "string[]",
+          "name": "twitterUsernames",
+          "type": "string[]"
+        },
+        {
           "internalType": "uint256[]",
           "name": "currentStages",
           "type": "uint256[]"
@@ -554,6 +724,11 @@
           "type": "string"
         },
         {
+          "internalType": "string",
+          "name": "twitterUsername",
+          "type": "string"
+        },
+        {
           "internalType": "uint256",
           "name": "currentStage",
           "type": "uint256"
@@ -567,6 +742,35 @@
           "internalType": "uint256",
           "name": "completionTime",
           "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "gameId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "player",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "stage",
+          "type": "uint256"
+        }
+      ],
+      "name": "isPerfectScore",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
         }
       ],
       "stateMutability": "view",
@@ -606,6 +810,11 @@
         {
           "internalType": "string",
           "name": "basename",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "twitterUsername",
           "type": "string"
         },
         {
@@ -851,4 +1060,3 @@
       "type": "function"
     }
   ]
-

@@ -139,11 +139,16 @@ provider.on('error', (error) => {
   console.error('Provider error:', error.message);
 });
 const contracts = {
-  DTAIOCToken: '0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c',
-  DTAIOCNFT: '0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1',
-  DTAIOCStaking: '0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC',
-  IBasenameResolver: '0xE2d6C0aF79bf5CA534B591B5A86bd467B308aB8F',
-  DTAIOCGame: '0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78',
+  DTAIOCToken: '0x6A9cA2919e53Ea03e6137CA0336064B0287Ff1Fb',
+  DTAIOCNFT: '0x1528e8c709370cec11CB3e1913Cb4944F99E7750',
+  DTAIOCStaking: '0x33d7Dc84aa3115553fFa527f21bC521BCb505857',
+  IBasenameResolver: '0x7F0eC684cA13d722366da9F3E8f276B68Dbf3B89',
+  DTAIOCGame: '0x0B755c118eeCd43637cF9094246191B37DEeb821',
+  BasePaymaster: '0x2C9FBD6894F8C28C1A723cE62513dFE1286D2866',
+  EntryPoint: '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789',
+  Paymaster: '0x2C9FBD6894F8C28C1A723cE62513dFE1286D2866',
+  SmartWallet: '0xBd5f62A3Ef61cC325C11001288704e4d0885b10a',
+  Platform: '0x37706dAb5DA56EcCa562f4f26478d1C484f0A7fB'
 };
 const abis = {};
 const contractInstances = {};
@@ -364,6 +369,54 @@ app.get('/auth/callback', async (req, res) => {
 /**
  * @swagger
  * /games:
+ *   get:
+ *     summary: List all games
+ *     description: Retrieves a list of all games in the database.
+ *     responses:
+ *       200:
+ *         description: List of games
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   basename:
+ *                     type: string
+ *                   created_at:
+ *                     type: string
+ *                   end_time:
+ *                     type: string
+ *                   duration:
+ *                     type: integer
+ *                   status:
+ *                     type: string
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+app.get('/games', async (req, res) => {
+  try {
+    console.log('Fetching all games');
+    const gamesResult = await pool.query(
+      'SELECT id, basename, created_at, end_time, duration, status FROM games ORDER BY created_at DESC'
+    );
+    res.json(gamesResult.rows);
+  } catch (error) {
+    console.error('Error in /games GET endpoint:', error.message, error.stack);
+    res.status(500).json({ error: `Failed to fetch games: ${error.message}` });
+  }
+});
+
+/**
+ * @swagger
+ * /games:
  *   post:
  *     summary: Create a new game
  *     description: Creates a game with questions generated from the user's tweets or backup data. Requires OAuth2 authentication.
@@ -528,10 +581,10 @@ app.post('/games', async (req, res) => {
       );
     }
     if (!pinata) throw new Error('Pinata client not initialized');
-      console.log('Uploading questions to Pinata');
-      const pinataResult = await pinata.upload.json({ questions });
-      console.log('Pinata upload successful, CID:', pinataResult.IpfsHash);
-    res.json({ gameId, questionHashes, ipfsCid: pinataResult.cid });
+    console.log('Uploading questions to Pinata');
+    const pinataResult = await pinata.upload.json({ questions });
+    console.log('Pinata upload successful, CID:', pinataResult.IpfsHash);
+    res.json({ gameId, questionHashes, ipfsCid: pinataResult.IpfsHash });
   } catch (error) {
     console.error('Error in /games endpoint:', error.message, error.stack);
     res.status(500).json({
