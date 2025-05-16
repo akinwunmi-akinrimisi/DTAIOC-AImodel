@@ -26,6 +26,7 @@
                     "maxMintPerWallet": {
                       "type": "string",
                       "description": "Maximum number of tokens that can be minted per wallet (uint256)."
+                    }
                   }
                 }
               }
@@ -2265,38 +2266,7 @@
                   "properties": {
                     "creatorFee": {
                       "type": "string",
-                      "description": "The fee percentage for creators (uint256)."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/gameCounter": {
-      "get": {
-        "summary": "Call DTAIOCGame.gameCounter",
-        "description": "Retrieve the total number of games created in the DTAIOCGame contract.",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "gameCounter": {
-                      "type": "string",
-                      "description": "The total number of games created (uint256)."
+                      "description": "The fee percentage for game creators (uint256)."
                     }
                   }
                 }
@@ -2452,7 +2422,7 @@
     "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/setCreatorFee": {
       "post": {
         "summary": "Call DTAIOCGame.setCreatorFee",
-        "description": "Set the fee percentage for game creators in the DTAIOCGame contract (only callable by the owner).",
+        "description": "Set the creator fee percentage in the DTAIOCGame contract (only callable by the owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -3362,7 +3332,3 @@
     }
   }
 }
-  }
-
-
-
