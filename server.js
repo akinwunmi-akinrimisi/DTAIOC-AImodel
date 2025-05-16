@@ -557,7 +557,7 @@ app.post('/games', async (req, res) => {
     }
   }
   try {
-    console.log('Executing question_generator.py with file:', tempFilePath);
+    console.log('Executing question_generator Ley with file:', tempFilePath);
     const { stdout, stderr } = await execPromise(`python ai/question_generator.py ${tempFilePath}`);
     if (stderr) console.error('Question generator stderr:', stderr);
     console.log('Question generator stdout:', stdout);
@@ -913,7 +913,7 @@ app.get('/games/:gameId/leaderboard', async (req, res) => {
  * /games/{gameId}/mint:
  *   post:
  *     summary: Mint DTAIOC tokens for a game
- *     description: Mints up to 100 DTAIOC tokens to the user's wallet if their balance is 10 DTAIOC or less and they are in the top 3 leaderboard. Requires OAuth2 authentication.
+ *     description: Mints up to 100 DTAIOC tokens to the user's wallet if they are in the top 3 leaderboard. Requires OAuth2 authentication.
  *     security:
  *       - oauth2: ['users.read']
  *     parameters:
@@ -950,7 +950,7 @@ app.get('/games/:gameId/leaderboard', async (req, res) => {
  *                 transactionHash:
  *                   type: string
  *       400:
- *         description: Invalid request, amount too high, balance too high, or minting paused
+ *         description: Invalid request, amount too high, or minting paused
  *         content:
  *           application/json:
  *             schema:
@@ -1025,18 +1025,6 @@ app.post('/games/:gameId/mint', async (req, res) => {
       return res.status(400).json({ error: 'Minting is paused on the contract' });
     }
 
-    // Check DTAIOC token balance requirement
-    const minBalance = await tokenContract.MIN_BALANCE_FOR_MINT();
-    const balance = await tokenContract.balanceOf(walletAddress);
-    console.log(`Checking DTAIOC balance for ${walletAddress}: ${ethers.utils.formatUnits(balance, 18)} DTAIOC, max allowed: ${ethers.utils.formatUnits(minBalance, 18)} DTAIOC`);
-    if (balance.gt(minBalance)) {
-      console.error(`Mint endpoint error: DTAIOC balance too high for ${username}`);
-      return res.status(400).json({ 
-        error: `DTAIOC balance too high: ${ethers.utils.formatUnits(balance, 18)} DTAIOC, must be ${ethers.utils.formatUnits(minBalance, 18)} DTAIOC or less to mint`,
-        suggestion: 'Spend or transfer DTAIOC tokens to reduce your balance to 10 DTAIOC or less.'
-      });
-    }
-
     // Check per-transaction mint limit
     const MAX_MINT_PER_TX = 100; // 100 DTAIOC
     if (amount > MAX_MINT_PER_TX) {
@@ -1079,7 +1067,7 @@ app.post('/games/:gameId/mint', async (req, res) => {
  * /games/{gameId}/mint-tokens:
  *   post:
  *     summary: Alias for minting DTAIOC tokens
- *     description: Redirects to /games/{gameId}/mint. Mints up to 100 DTAIOC tokens if balance is 10 DTAIOC or less. Requires OAuth2 authentication.
+ *     description: Redirects to /games/{gameId}/mint. Mints up to 100 DTAIOC tokens if in top 3 leaderboard. Requires OAuth2 authentication.
  *     security:
  *       - oauth2: ['users.read']
  *     parameters:
@@ -1116,7 +1104,7 @@ app.post('/games/:gameId/mint', async (req, res) => {
  *                 transactionHash:
  *                   type: string
  *       400:
- *         description: Invalid request, amount too high, balance too high, or minting paused
+ *         description: Invalid request, amount too high, or minting paused
  *         content:
  *           application/json:
  *             schema:

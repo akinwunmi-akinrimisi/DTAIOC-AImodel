@@ -13,11 +13,23 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/MAX_MINT_PER_WALLET": {
       "get": {
         "summary": "Call DTAIOCToken.MAX_MINT_PER_WALLET",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Retrieve the maximum number of tokens that can be minted per wallet from the DTAIOCToken contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "maxMintPerWallet": {
+                      "type": "string",
+                      "description": "Maximum number of tokens that can be minted per wallet (uint256)."
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -31,11 +43,24 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/MAX_SUPPLY": {
       "get": {
         "summary": "Call DTAIOCToken.MAX_SUPPLY",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Retrieve the maximum supply of tokens from the DTAIOCToken contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "maxSupply": {
+                      "type": "string",
+                      "description": "Maximum supply of tokens (uint256)."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -49,11 +74,24 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/MIN_BALANCE_FOR_MINT": {
       "get": {
         "summary": "Call DTAIOCToken.MIN_BALANCE_FOR_MINT",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Retrieve the minimum balance required for minting from the DTAIOCToken contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "minBalanceForMint": {
+                      "type": "string",
+                      "description": "Minimum balance required for minting (uint256)."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -67,28 +105,45 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/allowance": {
       "get": {
         "summary": "Call DTAIOCToken.allowance",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Retrieve the amount of tokens an owner has allowed a spender to use from the DTAIOCToken contract.",
         "parameters": [
           {
             "in": "query",
             "name": "owner",
             "schema": {
-              "type": "address"
+              "type": "string",
+              "pattern": "^0x[a-fA-F0-9]{40}$"
             },
-            "required": true
+            "required": true,
+            "description": "The address of the token owner."
           },
           {
             "in": "query",
             "name": "spender",
             "schema": {
-              "type": "address"
+              "type": "string",
+              "pattern": "^0x[a-fA-F0-9]{40}$"
             },
-            "required": true
+            "required": true,
+            "description": "The address of the spender."
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "allowance": {
+                      "type": "string",
+                      "description": "Amount of tokens the spender is allowed to use (uint256)."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -102,7 +157,7 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/approve": {
       "post": {
         "summary": "Call DTAIOCToken.approve",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Approve a spender to use a specified amount of tokens from the DTAIOCToken contract.",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -111,23 +166,36 @@
                 "type": "object",
                 "properties": {
                   "spender": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the spender."
                   },
                   "value": {
-                    "type": "uint256"
+                    "type": "string",
+                    "description": "The amount of tokens to approve (uint256)."
                   }
                 },
-                "required": [
-                  "spender",
-                  "value"
-                ]
+                "required": ["spender", "value"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the approval was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -141,20 +209,35 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/balanceOf": {
       "get": {
         "summary": "Call DTAIOCToken.balanceOf",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Retrieve the token balance of an account from the DTAIOCToken contract.",
         "parameters": [
           {
             "in": "query",
             "name": "account",
             "schema": {
-              "type": "address"
+              "type": "string",
+              "pattern": "^0x[a-fA-F0-9]{40}$"
             },
-            "required": true
+            "required": true,
+            "description": "The address of the account."
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "balance": {
+                      "type": "string",
+                      "description": "The token balance of the account (uint256)."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -168,11 +251,24 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/decimals": {
       "get": {
         "summary": "Call DTAIOCToken.decimals",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Retrieve the number of decimals used by the DTAIOCToken contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "decimals": {
+                      "type": "integer",
+                      "description": "The number of decimals for the token (uint8)."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -186,7 +282,7 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/mint": {
       "post": {
         "summary": "Call DTAIOCToken.mint",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Mint a specified amount of tokens to the caller’s address in the DTAIOCToken contract.",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -195,19 +291,31 @@
                 "type": "object",
                 "properties": {
                   "amount": {
-                    "type": "uint256"
+                    "type": "string",
+                    "description": "The amount of tokens to mint (uint256)."
                   }
                 },
-                "required": [
-                  "amount"
-                ]
+                "required": ["amount"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the minting was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -221,20 +329,35 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/mintedAmount": {
       "get": {
         "summary": "Call DTAIOCToken.mintedAmount",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Retrieve the amount of tokens minted by a specific address from the DTAIOCToken contract.",
         "parameters": [
           {
             "in": "query",
-            "name": "param0",
+            "name": "address",
             "schema": {
-              "type": "address"
+              "type": "string",
+              "pattern": "^0x[a-fA-F0-9]{40}$"
             },
-            "required": true
+            "required": true,
+            "description": "The address to check minted amount for."
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mintedAmount": {
+                      "type": "string",
+                      "description": "The amount of tokens minted by the address (uint256)."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -248,11 +371,24 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/mintingPaused": {
       "get": {
         "summary": "Call DTAIOCToken.mintingPaused",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Check if minting is paused in the DTAIOCToken contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "mintingPaused": {
+                      "type": "boolean",
+                      "description": "Indicates if minting is paused."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -266,11 +402,24 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/name": {
       "get": {
         "summary": "Call DTAIOCToken.name",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Retrieve the name of the token from the DTAIOCToken contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the token."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -284,11 +433,25 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/owner": {
       "get": {
         "summary": "Call DTAIOCToken.owner",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Retrieve the owner address of the DTAIOCToken contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "owner": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$",
+                      "description": "The address of the contract owner."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -302,7 +465,7 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/pauseMinting": {
       "post": {
         "summary": "Call DTAIOCToken.pauseMinting",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Pause minting in the DTAIOCToken contract (only callable by the owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -317,7 +480,20 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the pause was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -331,7 +507,7 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/renounceOwnership": {
       "post": {
         "summary": "Call DTAIOCToken.renounceOwnership",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Renounce ownership of the DTAIOCToken contract (only callable by the owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -346,7 +522,20 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the ownership renouncement was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -360,11 +549,24 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/symbol": {
       "get": {
         "summary": "Call DTAIOCToken.symbol",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Retrieve the symbol of the token from the DTAIOCToken contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "symbol": {
+                      "type": "string",
+                      "description": "The symbol of the token."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -378,11 +580,24 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/totalMinted": {
       "get": {
         "summary": "Call DTAIOCToken.totalMinted",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Retrieve the total amount of tokens minted from the DTAIOCToken contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalMinted": {
+                      "type": "string",
+                      "description": "The total amount of tokens minted (uint256)."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -396,11 +611,24 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/totalSupply": {
       "get": {
         "summary": "Call DTAIOCToken.totalSupply",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Retrieve the total supply of tokens in circulation from the DTAIOCToken contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalSupply": {
+                      "type": "string",
+                      "description": "The total supply of tokens (uint256)."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -414,7 +642,7 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/transfer": {
       "post": {
         "summary": "Call DTAIOCToken.transfer",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Transfer a specified amount of tokens to a recipient address in the DTAIOCToken contract.",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -423,23 +651,36 @@
                 "type": "object",
                 "properties": {
                   "to": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The recipient address."
                   },
                   "value": {
-                    "type": "uint256"
+                    "type": "string",
+                    "description": "The amount of tokens to transfer (uint256)."
                   }
                 },
-                "required": [
-                  "to",
-                  "value"
-                ]
+                "required": ["to", "value"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the transfer was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -453,7 +694,7 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/transferFrom": {
       "post": {
         "summary": "Call DTAIOCToken.transferFrom",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Transfer tokens from one address to another using an allowance in the DTAIOCToken contract.",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -462,27 +703,41 @@
                 "type": "object",
                 "properties": {
                   "from": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address to transfer tokens from."
                   },
                   "to": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The recipient address."
                   },
                   "value": {
-                    "type": "uint256"
+                    "type": "string",
+                    "description": "The amount of tokens to transfer (uint256)."
                   }
                 },
-                "required": [
-                  "from",
-                  "to",
-                  "value"
-                ]
+                "required": ["from", "to", "value"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the transfer was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -496,7 +751,7 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/transferOwnership": {
       "post": {
         "summary": "Call DTAIOCToken.transferOwnership",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Transfer ownership of the DTAIOCToken contract to a new owner (only callable by the current owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -505,19 +760,32 @@
                 "type": "object",
                 "properties": {
                   "newOwner": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the new owner."
                   }
                 },
-                "required": [
-                  "newOwner"
-                ]
+                "required": ["newOwner"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the ownership transfer was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -531,7 +799,7 @@
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/unpauseMinting": {
       "post": {
         "summary": "Call DTAIOCToken.unpauseMinting",
-        "description": "Interact with DTAIOCToken contract at 0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c",
+        "description": "Unpause minting in the DTAIOCToken contract (only callable by the owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -546,7 +814,78 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the unpause was successful."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/batchMint": {
+      "post": {
+        "summary": "Call DTAIOCToken.batchMint",
+        "description": "Mint tokens to multiple recipients in a single transaction in the DTAIOCToken contract (only callable by the owner).",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "recipients": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$"
+                    },
+                    "description": "Array of recipient addresses."
+                  },
+                  "amounts": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Array of amounts to mint for each recipient (uint256)."
+                  }
+                },
+                "required": ["recipients", "amounts"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the batch minting was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -560,7 +899,7 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/approve": {
       "post": {
         "summary": "Call DTAIOCNFT.approve",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Approve an address to transfer a specific NFT token from the DTAIOCNFT contract.",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -569,23 +908,36 @@
                 "type": "object",
                 "properties": {
                   "to": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address to approve for transferring the NFT."
                   },
                   "tokenId": {
-                    "type": "uint256"
+                    "type": "string",
+                    "description": "The ID of the NFT token to approve (uint256)."
                   }
                 },
-                "required": [
-                  "to",
-                  "tokenId"
-                ]
+                "required": ["to", "tokenId"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the approval was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -599,20 +951,35 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/balanceOf": {
       "get": {
         "summary": "Call DTAIOCNFT.balanceOf",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Retrieve the number of NFTs owned by a specific address in the DTAIOCNFT contract.",
         "parameters": [
           {
             "in": "query",
             "name": "owner",
             "schema": {
-              "type": "address"
+              "type": "string",
+              "pattern": "^0x[a-fA-F0-9]{40}$"
             },
-            "required": true
+            "required": true,
+            "description": "The address to check the NFT balance for."
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "balance": {
+                      "type": "string",
+                      "description": "The number of NFTs owned by the address (uint256)."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -626,11 +993,25 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/gameContract": {
       "get": {
         "summary": "Call DTAIOCNFT.gameContract",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Retrieve the address of the game contract associated with the DTAIOCNFT contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "gameContract": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$",
+                      "description": "The address of the associated game contract."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -644,20 +1025,35 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/getApproved": {
       "get": {
         "summary": "Call DTAIOCNFT.getApproved",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Retrieve the approved address for a specific NFT token in the DTAIOCNFT contract.",
         "parameters": [
           {
             "in": "query",
             "name": "tokenId",
             "schema": {
-              "type": "uint256"
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The ID of the NFT token (uint256)."
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "approved": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$",
+                      "description": "The address approved to transfer the NFT token."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -671,28 +1067,45 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/isApprovedForAll": {
       "get": {
         "summary": "Call DTAIOCNFT.isApprovedForAll",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Check if an operator is approved to manage all NFTs of an owner in the DTAIOCNFT contract.",
         "parameters": [
           {
             "in": "query",
             "name": "owner",
             "schema": {
-              "type": "address"
+              "type": "string",
+              "pattern": "^0x[a-fA-F0-9]{40}$"
             },
-            "required": true
+            "required": true,
+            "description": "The address of the NFT owner."
           },
           {
             "in": "query",
             "name": "operator",
             "schema": {
-              "type": "address"
+              "type": "string",
+              "pattern": "^0x[a-fA-F0-9]{40}$"
             },
-            "required": true
+            "required": true,
+            "description": "The address of the operator."
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "isApproved": {
+                      "type": "boolean",
+                      "description": "Indicates if the operator is approved for all NFTs."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -706,7 +1119,7 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/mintNFT": {
       "post": {
         "summary": "Call DTAIOCNFT.mintNFT",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Mint a new NFT to a recipient with specified attributes in the DTAIOCNFT contract.",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -715,31 +1128,44 @@
                 "type": "object",
                 "properties": {
                   "recipient": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address to receive the NFT."
                   },
                   "gameId": {
-                    "type": "uint256"
+                    "type": "string",
+                    "description": "The ID of the associated game (uint256)."
                   },
                   "rank": {
-                    "type": "uint256"
+                    "type": "string",
+                    "description": "The rank associated with the NFT (uint256)."
                   },
                   "tokenURI": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "The URI for the NFT metadata."
                   }
                 },
-                "required": [
-                  "recipient",
-                  "gameId",
-                  "rank",
-                  "tokenURI"
-                ]
+                "required": ["recipient", "gameId", "rank", "tokenURI"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the NFT minting was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -753,11 +1179,24 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/name": {
       "get": {
         "summary": "Call DTAIOCNFT.name",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Retrieve the name of the NFT collection from the DTAIOCNFT contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the NFT collection."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -771,11 +1210,25 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/owner": {
       "get": {
         "summary": "Call DTAIOCNFT.owner",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Retrieve the owner address of the DTAIOCNFT contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "owner": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$",
+                      "description": "The address of the contract owner."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -789,20 +1242,35 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/ownerOf": {
       "get": {
         "summary": "Call DTAIOCNFT.ownerOf",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Retrieve the owner of a specific NFT token in the DTAIOCNFT contract.",
         "parameters": [
           {
             "in": "query",
             "name": "tokenId",
             "schema": {
-              "type": "uint256"
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The ID of the NFT token (uint256)."
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "owner": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$",
+                      "description": "The address of the NFT owner."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -816,7 +1284,7 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/renounceOwnership": {
       "post": {
         "summary": "Call DTAIOCNFT.renounceOwnership",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Renounce ownership of the DTAIOCNFT contract (only callable by the owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -831,7 +1299,20 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the ownership renouncement was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -845,7 +1326,7 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/safeTransferFrom": {
       "post": {
         "summary": "Call DTAIOCNFT.safeTransferFrom",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Safely transfer an NFT token from one address to another in the DTAIOCNFT contract.",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -854,31 +1335,45 @@
                 "type": "object",
                 "properties": {
                   "from": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address to transfer the NFT from."
                   },
                   "to": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The recipient address."
                   },
                   "tokenId": {
-                    "type": "uint256"
+                    "type": "string",
+                    "description": "The ID of the NFT token (uint256)."
                   },
                   "data": {
-                    "type": "bytes"
+                    "type": "string",
+                    "description": "Additional data to pass to the recipient (bytes)."
                   }
                 },
-                "required": [
-                  "from",
-                  "to",
-                  "tokenId",
-                  "data"
-                ]
+                "required": ["from", "to", "tokenId", "data"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the transfer was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -892,7 +1387,7 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/setApprovalForAll": {
       "post": {
         "summary": "Call DTAIOCNFT.setApprovalForAll",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Set or unset approval for an operator to manage all NFTs of the caller in the DTAIOCNFT contract.",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -901,23 +1396,36 @@
                 "type": "object",
                 "properties": {
                   "operator": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the operator."
                   },
                   "approved": {
-                    "type": "bool"
+                    "type": "boolean",
+                    "description": "Whether to approve or revoke the operator."
                   }
                 },
-                "required": [
-                  "operator",
-                  "approved"
-                ]
+                "required": ["operator", "approved"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the approval setting was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -931,7 +1439,7 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/setGameContract": {
       "post": {
         "summary": "Call DTAIOCNFT.setGameContract",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Set the address of the game contract associated with the DTAIOCNFT contract (only callable by the owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -940,19 +1448,32 @@
                 "type": "object",
                 "properties": {
                   "_gameContract": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the game contract."
                   }
                 },
-                "required": [
-                  "_gameContract"
-                ]
+                "required": ["_gameContract"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the game contract setting was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -966,20 +1487,35 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/supportsInterface": {
       "get": {
         "summary": "Call DTAIOCNFT.supportsInterface",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Check if the DTAIOCNFT contract supports a specific interface.",
         "parameters": [
           {
             "in": "query",
             "name": "interfaceId",
             "schema": {
-              "type": "bytes4"
+              "type": "string",
+              "pattern": "^0x[a-fA-F0-9]{8}$"
             },
-            "required": true
+            "required": true,
+            "description": "The interface ID to check (bytes4)."
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "supported": {
+                      "type": "boolean",
+                      "description": "Indicates if the interface is supported."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -993,11 +1529,24 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/symbol": {
       "get": {
         "summary": "Call DTAIOCNFT.symbol",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Retrieve the symbol of the NFT collection from the DTAIOCNFT contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "symbol": {
+                      "type": "string",
+                      "description": "The symbol of the NFT collection."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1011,20 +1560,34 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/tokenURI": {
       "get": {
         "summary": "Call DTAIOCNFT.tokenURI",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Retrieve the metadata URI for a specific NFT token in the DTAIOCNFT contract.",
         "parameters": [
           {
             "in": "query",
             "name": "tokenId",
             "schema": {
-              "type": "uint256"
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The ID of the NFT token (uint256)."
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tokenURI": {
+                      "type": "string",
+                      "description": "The metadata URI for the NFT token."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1038,7 +1601,7 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/transferFrom": {
       "post": {
         "summary": "Call DTAIOCNFT.transferFrom",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Transfer an NFT token from one address to another in the DTAIOCNFT contract.",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -1047,27 +1610,41 @@
                 "type": "object",
                 "properties": {
                   "from": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address to transfer the NFT from."
                   },
                   "to": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The recipient address."
                   },
                   "tokenId": {
-                    "type": "uint256"
+                    "type": "string",
+                    "description": "The ID of the NFT token (uint256)."
                   }
                 },
-                "required": [
-                  "from",
-                  "to",
-                  "tokenId"
-                ]
+                "required": ["from", "to", "tokenId"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the transfer was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1081,7 +1658,7 @@
     "/contract/0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1/transferOwnership": {
       "post": {
         "summary": "Call DTAIOCNFT.transferOwnership",
-        "description": "Interact with DTAIOCNFT contract at 0xFCadE10a83E0963C31e8F9EB1712AE4AeC422FD1",
+        "description": "Transfer ownership of the DTAIOCNFT contract to a new owner (only callable by the current owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -1090,19 +1667,32 @@
                 "type": "object",
                 "properties": {
                   "newOwner": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the new owner."
                   }
                 },
-                "required": [
-                  "newOwner"
-                ]
+                "required": ["newOwner"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the ownership transfer was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1116,7 +1706,7 @@
     "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/distributeRewards": {
       "post": {
         "summary": "Call DTAIOCStaking.distributeRewards",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "description": "Distribute rewards for a game to specified addresses in the DTAIOCStaking contract.",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -1125,31 +1715,49 @@
                 "type": "object",
                 "properties": {
                   "gameId": {
-                    "type": "uint256"
+                    "type": "string",
+                    "description": "The ID of the game (uint256)."
                   },
                   "creator": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the game creator."
                   },
                   "platform": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the platform."
                   },
                   "winners": {
-                    "type": "address[]"
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$"
+                    },
+                    "description": "Array of winner addresses."
                   }
                 },
-                "required": [
-                  "gameId",
-                  "creator",
-                  "platform",
-                  "winners"
-                ]
+                "required": ["gameId", "creator", "platform", "winners"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the reward distribution was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1163,20 +1771,34 @@
     "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/forfeitedStakes": {
       "get": {
         "summary": "Call DTAIOCStaking.forfeitedStakes",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "description": "Retrieve the amount of forfeited stakes for a specific game in the DTAIOCStaking contract.",
         "parameters": [
           {
             "in": "query",
-            "name": "param0",
+            "name": "gameId",
             "schema": {
-              "type": "uint256"
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The ID of the game (uint256)."
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "forfeitedStakes": {
+                      "type": "string",
+                      "description": "The amount of forfeited stakes (uint256)."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1190,11 +1812,25 @@
     "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/gameContract": {
       "get": {
         "summary": "Call DTAIOCStaking.gameContract",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "description": "Retrieve the address of the game contract associated with the DTAIOCStaking contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "gameContract": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$",
+                      "description": "The address of the associated game contract."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1208,11 +1844,25 @@
     "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/owner": {
       "get": {
         "summary": "Call DTAIOCStaking.owner",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "description": "Retrieve the owner address of the DTAIOCStaking contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "owner": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$",
+                      "description": "The address of the contract owner."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1226,7 +1876,7 @@
     "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/pauseStaking": {
       "post": {
         "summary": "Call DTAIOCStaking.pauseStaking",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "description": "Pause staking in the DTAIOCStaking contract (only callable by the owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -1241,103 +1891,20 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/platformAddress": {
-      "get": {
-        "summary": "Call DTAIOCStaking.platformAddress",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/playerStakes": {
-      "get": {
-        "summary": "Call DTAIOCStaking.playerStakes",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "param0",
-            "schema": {
-              "type": "uint256"
-            },
-            "required": true
-          },
-          {
-            "in": "query",
-            "name": "param1",
-            "schema": {
-              "type": "address"
-            },
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/refund": {
-      "post": {
-        "summary": "Call DTAIOCStaking.refund",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "gameId": {
-                    "type": "uint256"
-                  },
-                  "player": {
-                    "type": "address"
-                  },
-                  "stage": {
-                    "type": "uint256"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the pause was successful."
+                    }
                   }
-                },
-                "required": [
-                  "gameId",
-                  "player",
-                  "stage"
-                ]
+                }
               }
             }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success"
           },
           "400": {
             "description": "Invalid input"
@@ -1351,7 +1918,7 @@
     "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/renounceOwnership": {
       "post": {
         "summary": "Call DTAIOCStaking.renounceOwnership",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "description": "Renounce ownership of the DTAIOCStaking contract (only callable by the owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -1366,7 +1933,20 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the ownership renouncement was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1380,7 +1960,7 @@
     "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/setGameContract": {
       "post": {
         "summary": "Call DTAIOCStaking.setGameContract",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "description": "Set the address of the game contract associated with the DTAIOCStaking contract (only callable by the owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -1389,19 +1969,32 @@
                 "type": "object",
                 "properties": {
                   "_gameContract": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the game contract."
                   }
                 },
-                "required": [
-                  "_gameContract"
-                ]
+                "required": ["_gameContract"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the game contract setting was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1415,7 +2008,7 @@
     "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/stake": {
       "post": {
         "summary": "Call DTAIOCStaking.stake",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "description": "Stake tokens for a specific game in the DTAIOCStaking contract.",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -1424,27 +2017,35 @@
                 "type": "object",
                 "properties": {
                   "gameId": {
-                    "type": "uint256"
-                  },
-                  "player": {
-                    "type": "address"
+                    "type": "string",
+                    "description": "The ID of the game (uint256)."
                   },
                   "amount": {
-                    "type": "uint256"
+                    "type": "string",
+                    "description": "The amount of tokens to stake (uint256)."
                   }
                 },
-                "required": [
-                  "gameId",
-                  "player",
-                  "amount"
-                ]
+                "required": ["gameId", "amount"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the staking was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1458,11 +2059,24 @@
     "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/stakingPaused": {
       "get": {
         "summary": "Call DTAIOCStaking.stakingPaused",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "description": "Check if staking is paused in the DTAIOCStaking contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "stakingPaused": {
+                      "type": "boolean",
+                      "description": "Indicates if staking is paused."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1473,14 +2087,28 @@
         }
       }
     },
-    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/token": {
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/tokenContract": {
       "get": {
-        "summary": "Call DTAIOCStaking.token",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "summary": "Call DTAIOCStaking.tokenContract",
+        "description": "Retrieve the address of the token contract associated with the DTAIOCStaking contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tokenContract": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$",
+                      "description": "The address of the associated token contract."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1491,23 +2119,37 @@
         }
       }
     },
-    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/totalStakes": {
+    "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/totalStaked": {
       "get": {
-        "summary": "Call DTAIOCStaking.totalStakes",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "summary": "Call DTAIOCStaking.totalStaked",
+        "description": "Retrieve the total amount of tokens staked for a specific game in the DTAIOCStaking contract.",
         "parameters": [
           {
             "in": "query",
-            "name": "param0",
+            "name": "gameId",
             "schema": {
-              "type": "uint256"
+              "type": "string"
             },
-            "required": true
+            "required": true,
+            "description": "The ID of the game (uint256)."
           }
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalStaked": {
+                      "type": "string",
+                      "description": "The total amount of tokens staked (uint256)."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1521,7 +2163,7 @@
     "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/transferOwnership": {
       "post": {
         "summary": "Call DTAIOCStaking.transferOwnership",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "description": "Transfer ownership of the DTAIOCStaking contract to a new owner (only callable by the current owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -1530,19 +2172,32 @@
                 "type": "object",
                 "properties": {
                   "newOwner": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the new owner."
                   }
                 },
-                "required": [
-                  "newOwner"
-                ]
+                "required": ["newOwner"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the ownership transfer was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -1556,7 +2211,7 @@
     "/contract/0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC/unpauseStaking": {
       "post": {
         "summary": "Call DTAIOCStaking.unpauseStaking",
-        "description": "Interact with DTAIOCStaking contract at 0xf5d48836E1FDf267294Ca6B1B6f3860c18eF75dC",
+        "description": "Unpause staking in the DTAIOCStaking contract (only callable by the owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -1571,141 +2226,20 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xE2d6C0aF79bf5CA534B591B5A86bd467B308aB8F/resolve": {
-      "get": {
-        "summary": "Call IBasenameResolver.resolve",
-        "description": "Interact with IBasenameResolver contract at 0xE2d6C0aF79bf5CA534B591B5A86bd467B308aB8F",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "node",
-            "schema": {
-              "type": "bytes32"
-            },
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/DEFAULT_GAME_DURATION": {
-      "get": {
-        "summary": "Call DTAIOCGame.DEFAULT_GAME_DURATION",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/NFT_TOKEN_URI": {
-      "get": {
-        "summary": "Call DTAIOCGame.NFT_TOKEN_URI",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/PLAYER_LIMIT": {
-      "get": {
-        "summary": "Call DTAIOCGame.PLAYER_LIMIT",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/STAKE_AMOUNT": {
-      "get": {
-        "summary": "Call DTAIOCGame.STAKE_AMOUNT",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/advanceStage": {
-      "post": {
-        "summary": "Call DTAIOCGame.advanceStage",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "gameId": {
-                    "type": "uint256"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the unpause was successful."
+                    }
                   }
-                },
-                "required": [
-                  "gameId"
-                ]
+                }
               }
             }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success"
           },
           "400": {
             "description": "Invalid input"
@@ -1716,110 +2250,27 @@
         }
       }
     },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/autoEndGame": {
-      "post": {
-        "summary": "Call DTAIOCGame.autoEndGame",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "gameId": {
-                    "type": "uint256"
-                  }
-                },
-                "required": [
-                  "gameId"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/backendSigner": {
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/creatorFee": {
       "get": {
-        "summary": "Call DTAIOCGame.backendSigner",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "summary": "Call DTAIOCGame.creatorFee",
+        "description": "Retrieve the fee percentage for game creators in the DTAIOCGame contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/basenameResolver": {
-      "get": {
-        "summary": "Call DTAIOCGame.basenameResolver",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/createGame": {
-      "post": {
-        "summary": "Call DTAIOCGame.createGame",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "basenameNode": {
-                    "type": "bytes32"
-                  },
-                  "questionRootHashes": {
-                    "type": "bytes32[3]"
-                  },
-                  "_gameDuration": {
-                    "type": "uint256"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "creatorFee": {
+                      "type": "string",
+                      "description": "The fee percentage for creators (uint256)."
+                    }
                   }
-                },
-                "required": [
-                  "basenameNode",
-                  "questionRootHashes",
-                  "_gameDuration"
-                ]
+                }
               }
             }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success"
           },
           "400": {
             "description": "Invalid input"
@@ -1830,216 +2281,27 @@
         }
       }
     },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/endGame": {
-      "post": {
-        "summary": "Call DTAIOCGame.endGame",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "gameId": {
-                    "type": "uint256"
-                  }
-                },
-                "required": [
-                  "gameId"
-                ]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/gameCounter": {
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/gameCounter": {
       "get": {
         "summary": "Call DTAIOCGame.gameCounter",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "description": "Retrieve the total number of games created in the DTAIOCGame contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/games": {
-      "get": {
-        "summary": "Call DTAIOCGame.games",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "gameId",
-            "schema": {
-              "type": "uint256"
-            },
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/getLeaderboardData": {
-      "get": {
-        "summary": "Call DTAIOCGame.getLeaderboardData",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "gameId",
-            "schema": {
-              "type": "uint256"
-            },
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/getPlayer": {
-      "get": {
-        "summary": "Call DTAIOCGame.getPlayer",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "gameId",
-            "schema": {
-              "type": "uint256"
-            },
-            "required": true
-          },
-          {
-            "in": "query",
-            "name": "playerAddress",
-            "schema": {
-              "type": "address"
-            },
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/isPlayerInGame": {
-      "get": {
-        "summary": "Call DTAIOCGame.isPlayerInGame",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "gameId",
-            "schema": {
-              "type": "uint256"
-            },
-            "required": true
-          },
-          {
-            "in": "query",
-            "name": "player",
-            "schema": {
-              "type": "address"
-            },
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/joinGame": {
-      "post": {
-        "summary": "Call DTAIOCGame.joinGame",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "gameId": {
-                    "type": "uint256"
-                  },
-                  "basename": {
-                    "type": "string"
-                  },
-                  "signature": {
-                    "type": "bytes"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "gameCounter": {
+                      "type": "string",
+                      "description": "The total number of games created (uint256)."
+                    }
                   }
-                },
-                "required": [
-                  "gameId",
-                  "basename",
-                  "signature"
-                ]
+                }
               }
             }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success"
           },
           "400": {
             "description": "Invalid input"
@@ -2050,14 +2312,28 @@
         }
       }
     },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/nft": {
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/nftContract": {
       "get": {
-        "summary": "Call DTAIOCGame.nft",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "summary": "Call DTAIOCGame.nftContract",
+        "description": "Retrieve the address of the NFT contract associated with the DTAIOCGame contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "nftContract": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$",
+                      "description": "The address of the associated NFT contract."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -2068,106 +2344,28 @@
         }
       }
     },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/owner": {
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/owner": {
       "get": {
         "summary": "Call DTAIOCGame.owner",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "description": "Retrieve the owner address of the DTAIOCGame contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/platformAddress": {
-      "get": {
-        "summary": "Call DTAIOCGame.platformAddress",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/questionHashUnique": {
-      "get": {
-        "summary": "Call DTAIOCGame.questionHashUnique",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "param0",
-            "schema": {
-              "type": "uint256"
-            },
-            "required": true
-          },
-          {
-            "in": "query",
-            "name": "param1",
-            "schema": {
-              "type": "bytes32"
-            },
-            "required": true
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/refundPlayer": {
-      "post": {
-        "summary": "Call DTAIOCGame.refundPlayer",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "gameId": {
-                    "type": "uint256"
-                  },
-                  "player": {
-                    "type": "address"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "owner": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$",
+                      "description": "The address of the contract owner."
+                    }
                   }
-                },
-                "required": [
-                  "gameId",
-                  "player"
-                ]
+                }
               }
             }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success"
           },
           "400": {
             "description": "Invalid input"
@@ -2178,10 +2376,41 @@
         }
       }
     },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/renounceOwnership": {
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/platformFee": {
+      "get": {
+        "summary": "Call DTAIOCGame.platformFee",
+        "description": "Retrieve the platform fee percentage in the DTAIOCGame contract.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "platformFee": {
+                      "type": "string",
+                      "description": "The platform fee percentage (uint256)."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/renounceOwnership": {
       "post": {
         "summary": "Call DTAIOCGame.renounceOwnership",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "description": "Renounce ownership of the DTAIOCGame contract (only callable by the owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -2196,7 +2425,20 @@
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the ownership renouncement was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -2207,10 +2449,10 @@
         }
       }
     },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/setBackendSigner": {
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/setCreatorFee": {
       "post": {
-        "summary": "Call DTAIOCGame.setBackendSigner",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "summary": "Call DTAIOCGame.setCreatorFee",
+        "description": "Set the fee percentage for game creators in the DTAIOCGame contract (only callable by the owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -2218,20 +2460,32 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "_backendSigner": {
-                    "type": "address"
+                  "_creatorFee": {
+                    "type": "string",
+                    "description": "The new creator fee percentage (uint256)."
                   }
                 },
-                "required": [
-                  "_backendSigner"
-                ]
+                "required": ["_creatorFee"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the creator fee setting was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -2242,28 +2496,10 @@
         }
       }
     },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/staking": {
-      "get": {
-        "summary": "Call DTAIOCGame.staking",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/submitAnswers": {
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/setNFTContract": {
       "post": {
-        "summary": "Call DTAIOCGame.submitAnswers",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "summary": "Call DTAIOCGame.setNFTContract",
+        "description": "Set the address of the NFT contract associated with the DTAIOCGame contract (only callable by the owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -2271,36 +2507,33 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "gameId": {
-                    "type": "uint256"
-                  },
-                  "stage": {
-                    "type": "uint256"
-                  },
-                  "answerHashes": {
-                    "type": "bytes32[]"
-                  },
-                  "score": {
-                    "type": "uint256"
-                  },
-                  "signature": {
-                    "type": "bytes"
+                  "_nftContract": {
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the NFT contract."
                   }
                 },
-                "required": [
-                  "gameId",
-                  "stage",
-                  "answerHashes",
-                  "score",
-                  "signature"
-                ]
+                "required": ["_nftContract"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the NFT contract setting was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -2311,39 +2544,43 @@
         }
       }
     },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/submitted": {
-      "get": {
-        "summary": "Call DTAIOCGame.submitted",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "param0",
-            "schema": {
-              "type": "uint256"
-            },
-            "required": true
-          },
-          {
-            "in": "query",
-            "name": "param1",
-            "schema": {
-              "type": "uint256"
-            },
-            "required": true
-          },
-          {
-            "in": "query",
-            "name": "param2",
-            "schema": {
-              "type": "address"
-            },
-            "required": true
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/setPlatformFee": {
+      "post": {
+        "summary": "Call DTAIOCGame.setPlatformFee",
+        "description": "Set the platform fee percentage in the DTAIOCGame contract (only callable by the owner).",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "_platformFee": {
+                    "type": "string",
+                    "description": "The new platform fee percentage (uint256)."
+                  }
+                },
+                "required": ["_platformFee"]
+              }
+            }
           }
-        ],
+        },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the platform fee setting was successful."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -2354,14 +2591,76 @@
         }
       }
     },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/token": {
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/setStakingContract": {
+      "post": {
+        "summary": "Call DTAIOCGame.setStakingContract",
+        "description": "Set the address of the staking contract associated with the DTAIOCGame contract (only callable by the owner).",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "_stakingContract": {
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the staking contract."
+                  }
+                },
+                "required": ["_stakingContract"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the staking contract setting was successful."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/stakingContract": {
       "get": {
-        "summary": "Call DTAIOCGame.token",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "summary": "Call DTAIOCGame.stakingContract",
+        "description": "Retrieve the address of the staking contract associated with the DTAIOCGame contract.",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "stakingContract": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$",
+                      "description": "The address of the associated staking contract."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -2372,10 +2671,10 @@
         }
       }
     },
-    "/contract/0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78/transferOwnership": {
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/transferOwnership": {
       "post": {
         "summary": "Call DTAIOCGame.transferOwnership",
-        "description": "Interact with DTAIOCGame contract at 0xA6d6A60eaA5F52b60843deFFF560F788E7C44d78",
+        "description": "Transfer ownership of the DTAIOCGame contract to a new owner (only callable by the current owner).",
         "parameters": [],
         "requestBody": {
           "content": {
@@ -2384,19 +2683,673 @@
                 "type": "object",
                 "properties": {
                   "newOwner": {
-                    "type": "address"
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the new owner."
                   }
                 },
-                "required": [
-                  "newOwner"
-                ]
+                "required": ["newOwner"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the ownership transfer was successful."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/updateGameStatus": {
+      "post": {
+        "summary": "Call DTAIOCGame.updateGameStatus",
+        "description": "Update the status of a game in the DTAIOCGame contract (only callable by the owner).",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gameId": {
+                    "type": "string",
+                    "description": "The ID of the game (uint256)."
+                  },
+                  "status": {
+                    "type": "integer",
+                    "description": "The new status of the game (uint8)."
+                  }
+                },
+                "required": ["gameId", "status"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the game status update was successful."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/createGame": {
+      "post": {
+        "summary": "Call DTAIOCGame.createGame",
+        "description": "Create a new game in the DTAIOCGame contract with specified parameters.",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "creator": {
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the game creator."
+                  },
+                  "stakeAmount": {
+                    "type": "string",
+                    "description": "The amount of tokens required to stake for the game (uint256)."
+                  },
+                  "playersLimit": {
+                    "type": "string",
+                    "description": "The maximum number of players allowed (uint256)."
+                  },
+                  "duration": {
+                    "type": "string",
+                    "description": "The duration of the game in seconds (uint256)."
+                  }
+                },
+                "required": ["creator", "stakeAmount", "playersLimit", "duration"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the game creation was successful."
+                    },
+                    "gameId": {
+                      "type": "string",
+                      "description": "The ID of the created game (uint256)."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/endGame": {
+      "post": {
+        "summary": "Call DTAIOCGame.endGame",
+        "description": "End a game and distribute rewards in the DTAIOCGame contract.",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gameId": {
+                    "type": "string",
+                    "description": "The ID of the game (uint256)."
+                  },
+                  "winners": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$"
+                    },
+                    "description": "Array of winner addresses."
+                  },
+                  "ranks": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Array of ranks for the winners (uint256)."
+                  }
+                },
+                "required": ["gameId", "winners", "ranks"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the game ending and reward distribution were successful."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/joinGame": {
+      "post": {
+        "summary": "Call DTAIOCGame.joinGame",
+        "description": "Join an existing game by staking the required amount in the DTAIOCGame contract.",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gameId": {
+                    "type": "string",
+                    "description": "The ID of the game to join (uint256)."
+                  },
+                  "player": {
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the player joining."
+                  }
+                },
+                "required": ["gameId", "player"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if joining the game was successful."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/pause": {
+      "post": {
+        "summary": "Call DTAIOCGame.pause",
+        "description": "Pause the DTAIOCGame contract (only callable by the owner).",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the pause was successful."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/paused": {
+      "get": {
+        "summary": "Call DTAIOCGame.paused",
+        "description": "Check if the DTAIOCGame contract is paused.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "paused": {
+                      "type": "boolean",
+                      "description": "Indicates if the contract is paused."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/unpause": {
+      "post": {
+        "summary": "Call DTAIOCGame.unpause",
+        "description": "Unpause the DTAIOCGame contract (only callable by the owner).",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the unpause was successful."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/getGameDetails": {
+      "get": {
+        "summary": "Call DTAIOCGame.getGameDetails",
+        "description": "Retrieve details of a specific game in the DTAIOCGame contract.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "gameId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "The ID of the game (uint256)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "creator": {
+                      "type": "string",
+                      "pattern": "^0x[a-fA-F0-9]{40}$",
+                      "description": "The address of the game creator."
+                    },
+                    "stakeAmount": {
+                      "type": "string",
+                      "description": "The amount of tokens required to stake (uint256)."
+                    },
+                    "playersLimit": {
+                      "type": "string",
+                      "description": "The maximum number of players (uint256)."
+                    },
+                    "duration": {
+                      "type": "string",
+                      "description": "The duration of the game in seconds (uint256)."
+                    },
+                    "status": {
+                      "type": "integer",
+                      "description": "The status of the game (uint8)."
+                    },
+                    "playerCount": {
+                      "type": "string",
+                      "description": "The current number of players (uint256)."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/getGamePlayers": {
+      "get": {
+        "summary": "Call DTAIOCGame.getGamePlayers",
+        "description": "Retrieve the list of players in a specific game in the DTAIOCGame contract.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "gameId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "The ID of the game (uint256)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "players": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^0x[a-fA-F0-9]{40}$"
+                      },
+                      "description": "Array of player addresses."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/getPlayerGames": {
+      "get": {
+        "summary": "Call DTAIOCGame.getPlayerGames",
+        "description": "Retrieve the list of game IDs a player is participating in within the DTAIOCGame contract.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "player",
+            "schema": {
+              "type": "string",
+              "pattern": "^0x[a-fA-F0-9]{40}$"
+            },
+            "required": true,
+            "description": "The address of the player."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "gameIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of game IDs the player is participating in (uint256)."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/forfeitGame": {
+      "post": {
+        "summary": "Call DTAIOCGame.forfeitGame",
+        "description": "Forfeit a game, allowing a player to exit and forfeit their stake in the DTAIOCGame contract.",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gameId": {
+                    "type": "string",
+                    "description": "The ID of the game (uint256)."
+                  },
+                  "player": {
+                    "type": "string",
+                    "pattern": "^0x[a-fA-F0-9]{40}$",
+                    "description": "The address of the player forfeiting."
+                  }
+                },
+                "required": ["gameId", "player"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the forfeit was successful."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/getGameWinners": {
+      "get": {
+        "summary": "Call DTAIOCGame.getGameWinners",
+        "description": "Retrieve the list of winners and their ranks for a specific game in the DTAIOCGame contract.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "gameId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "The ID of the game (uint256)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "winners": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^0x[a-fA-F0-9]{40}$"
+                      },
+                      "description": "Array of winner addresses."
+                    },
+                    "ranks": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of ranks for the winners (uint256)."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/contract/0x15C905E6bA9F16E5F3f3B7B66B90F9CAaC5F0A1B/getGameStatus": {
+      "get": {
+        "summary": "Call DTAIOCGame.getGameStatus",
+        "description": "Retrieve the status of a specific game in the DTAIOCGame contract.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "gameId",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "The ID of the game (uint256)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer",
+                      "description": "The status of the game (uint8)."
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
             "description": "Invalid input"
@@ -2409,3 +3362,7 @@
     }
   }
 }
+  }
+
+
+
