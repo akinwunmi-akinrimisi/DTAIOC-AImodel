@@ -3283,79 +3283,6 @@
         }
       }
     },
-    "/": {
-      "get": {
-        "summary": "Welcome endpoint",
-        "description": "Returns a welcome message for the DTriviaAIOnChain API.",
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "message": {
-                      "type": "string",
-                      "example": "Welcome to DTriviaAIOnChain API"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/basenames/link": {
-      "post": {
-        "summary": "Fetch tweets for a given Twitter username",
-        "description": "Links a Twitter username to fetch their recent tweets using the X API.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "username": {
-                    "type": "string",
-                    "description": "Twitter username without the @ symbol."
-                  }
-                },
-                "required": ["username"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": { "type": "string" },
-                          "text": { "type": "string" }
-                        }
-                      },
-                      "description": "Array of tweets"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": { "description": "Invalid input" },
-          "500": { "description": "Server error" }
-        }
-      }
-    },
     "/questions/generate": {
       "post": {
         "summary": "Generate trivia questions from tweets",
@@ -3483,6 +3410,234 @@
                       "type": "boolean",
                       "description": "Indicates if the minting was successful."
                     }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid input" },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Welcome endpoint",
+        "description": "Returns a welcome message for the DTriviaAIOnChain API.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string", "example": "Welcome to DTriviaAIOnChain API" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/balanceOf": {
+      "get": {
+        "summary": "Call DTAIOCToken.balanceOf",
+        "description": "Retrieve the token balance of a specified address in the DTAIOCToken contract.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "owner",
+            "schema": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$" },
+            "required": true,
+            "description": "The address to check the balance for."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "balance": {
+                      "type": "string",
+                      "description": "The token balance (uint256)."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid input" },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
+    "/basenames/link": {
+      "post": {
+        "summary": "Fetch tweets for a Twitter username",
+        "description": "Fetches recent tweets for a given Twitter username using the X API.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string", "description": "Twitter username" }
+                },
+                "required": ["username"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "text": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid input" },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
+    "/questions/generate": {
+      "post": {
+        "summary": "Generate trivia questions from tweets",
+        "description": "Generates trivia questions based on provided tweets using an AI model.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tweets": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "text": { "type": "string" }
+                      }
+                    }
+                  }
+                },
+                "required": ["tweets"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "questions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "question": { "type": "string" },
+                          "options": { "type": "array", "items": { "type": "string" } },
+                          "correctAnswer": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid input" },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
+    "/questions/backup": {
+      "get": {
+        "summary": "Retrieve backup questions",
+        "description": "Fetches pre-stored backup questions.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "questions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "question": { "type": "string" },
+                          "options": { "type": "array", "items": { "type": "string" } },
+                          "correctAnswer": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
+    "/games": {
+      "post": {
+        "summary": "Create a new trivia game",
+        "description": "Creates a new game in the DTAIOCGame contract with specified parameters and associates it with a Twitter username.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string", "description": "Twitter username" },
+                  "creator": { "type": "string", "pattern": "^0x[a-fA-F0-9]{40}$", "description": "Creator address" },
+                  "stakeAmount": { "type": "string", "description": "Stake amount (uint256)" },
+                  "playersLimit": { "type": "string", "description": "Max players (uint256)" },
+                  "duration": { "type": "string", "description": "Game duration in seconds (uint256)" }
+                },
+                "required": ["username", "creator", "stakeAmount", "playersLimit", "duration"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "gameId": { "type": "string", "description": "ID of the created game" }
                   }
                 }
               }
