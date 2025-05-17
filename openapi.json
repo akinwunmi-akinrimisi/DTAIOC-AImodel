@@ -280,53 +280,6 @@
         }
       }
     },
-    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/mint": {
-      "post": {
-        "summary": "Call DTAIOCToken.mint",
-        "description": "Mint a specified amount of tokens to the caller’s address in the DTAIOCToken contract.",
-        "parameters": [],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "amount": {
-                    "type": "string",
-                    "description": "The amount of tokens to mint (uint256)."
-                  }
-                },
-                "required": ["amount"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": {
-                      "type": "boolean",
-                      "description": "Indicates if the minting was successful."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/mintedAmount": {
       "get": {
         "summary": "Call DTAIOCToken.mintedAmount",
@@ -3329,6 +3282,217 @@
           }
         }
       }
+    },
+    "/": {
+      "get": {
+        "summary": "Welcome endpoint",
+        "description": "Returns a welcome message for the DTriviaAIOnChain API.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Welcome to DTriviaAIOnChain API"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/basenames/link": {
+      "post": {
+        "summary": "Fetch tweets for a given Twitter username",
+        "description": "Links a Twitter username to fetch their recent tweets using the X API.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "Twitter username without the @ symbol."
+                  }
+                },
+                "required": ["username"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "text": { "type": "string" }
+                        }
+                      },
+                      "description": "Array of tweets"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid input" },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
+    "/questions/generate": {
+      "post": {
+        "summary": "Generate trivia questions from tweets",
+        "description": "Generates trivia questions based on provided tweets using an AI model.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tweets": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "text": { "type": "string" }
+                      }
+                    },
+                    "description": "Array of tweet objects"
+                  }
+                },
+                "required": ["tweets"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "questions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "question": { "type": "string" },
+                          "options": {
+                            "type": "array",
+                            "items": { "type": "string" }
+                          },
+                          "correctAnswer": { "type": "string" }
+                        }
+                      },
+                      "description": "Array of generated questions"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid input" },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
+    "/questions/backup": {
+      "get": {
+        "summary": "Retrieve backup questions",
+        "description": "Fetches pre-stored backup questions for use when Twitter-based generation fails.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "questions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "question": { "type": "string" },
+                          "options": {
+                            "type": "array",
+                            "items": { "type": "string" }
+                          },
+                          "correctAnswer": { "type": "string" }
+                        }
+                      },
+                      "description": "Array of backup questions"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
+    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/mint": {
+      "post": {
+        "summary": "Call DTAIOCToken.mint",
+        "description": "Mint a specified amount of tokens to the caller’s address in the DTAIOCToken contract.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "amount": {
+                    "type": "string",
+                    "description": "The amount of tokens to mint (uint256)."
+                  }
+                },
+                "required": ["amount"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Indicates if the minting was successful."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid input" },
+          "500": { "description": "Server error" }
+        }
+      }
     }
   }
 }
+  
