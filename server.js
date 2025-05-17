@@ -18,49 +18,6 @@ app.use(express.json());
 app.use(cors());
 
 // Swagger configuration
-/**
- * @swagger
- * components:
- *   schemas:
- *     Error:
- *       type: object
- *       properties:
- *         error:
- *           type: string
- *         suggestion:
- *           type: string
- *         details:
- *           type: string
- *     Game:
- *       type: object
- *       properties:
- *         gameId:
- *           type: integer
- *         questionHashes:
- *           type: array
- *           items:
- *             type: string
- *         ipfsCid:
- *           type: string
- *     Question:
- *       type: object
- *       properties:
- *         question:
- *           type: string
- *         options:
- *           type: array
- *           items:
- *             type: string
- *         hash:
- *           type: string
- *     LeaderboardEntry:
- *       type: object
- *       properties:
- *         username:
- *           type: string
- *         score:
- *           type: integer
- */
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(JSON.parse(fs.readFileSync(path.join(__dirname, 'openapi.json'), 'utf8'))));
 app.get('/api-docs', (req, res) => res.redirect('/api-docs/'));
 
@@ -193,43 +150,6 @@ async function refreshUserToken(username, refreshToken) {
 }
 
 // Health endpoint
-/**
- * @swagger
- * /health:
- *   get:
- *     summary: Check server health
- *     description: Returns the status of environment variables and server health.
- *     responses:
- *       200:
- *         description: Server is healthy
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 status:
- *                   type: string
- *                   example: ok
- *                 env:
- *                   type: object
- *                   properties:
- *                     X_CLIENT_ID:
- *                       type: boolean
- *                     X_CLIENT_SECRET:
- *                       type: boolean
- *                     X_REDIRECT_URI:
- *                       type: boolean
- *                     DB_NAME:
- *                       type: boolean
- *                     PINATA_JWT:
- *                       type: boolean
- *                     OPENAI_API_KEY:
- *                       type: boolean
- *                     ALCHEMY_API_KEY:
- *                       type: boolean
- *                     SIGNER_PRIVATE_KEY:
- *                       type: boolean
- */
 app.get('/health', (req, res) => {
   const envStatus = {
     X_CLIENT_ID: !!process.env.X_CLIENT_ID,
@@ -245,35 +165,6 @@ app.get('/health', (req, res) => {
 });
 
 // Auth endpoints
-/**
- * @swagger
- * /auth/login:
- *   get:
- *     summary: Initiate OAuth2 login with Twitter
- *     description: Redirects the user to Twitter's OAuth2 authorization page.
- *     parameters:
- *       - in: query
- *         name: username
- *         required: true
- *         schema:
- *           type: string
- *         description: Username of the player
- *     responses:
- *       302:
- *         description: Redirects to Twitter OAuth2 authorization URL
- *       400:
- *         description: Username is required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Failed to initiate OAuth login
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 app.get('/auth/login', (req, res) => {
   const { username } = req.query;
   if (!username) {
@@ -295,48 +186,6 @@ app.get('/auth/login', (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /auth/callback:
- *   get:
- *     summary: Handle OAuth2 callback from Twitter
- *     description: Exchanges authorization code for access token and stores user credentials.
- *     parameters:
- *       - in: query
- *         name: state
- *         required: true
- *         schema:
- *           type: string
- *         description: OAuth state parameter
- *       - in: query
- *         name: code
- *         required: true
- *         schema:
- *           type: string
- *         description: Authorization code
- *     responses:
- *       200:
- *         description: Successfully authenticated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *       400:
- *         description: Invalid or expired state
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Failed to authenticate with Twitter
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 app.get('/auth/callback', async (req, res) => {
   const { state, code } = req.query;
   if (!oauthStates.has(state)) {
@@ -365,42 +214,107 @@ app.get('/auth/callback', async (req, res) => {
   }
 });
 
+// Smart contract endpoints
+app.get('/contract/0x6A9cA2919e53Ea03e6137CA0336064B0287Ff1Fb/balanceOf', async (req, res) => {
+  try {
+    const { owner } = req.query;
+    if (!owner || !/^0x[a-fA-F0-9]{40}$/.test(owner)) {
+      return res.status(400).json({ error: 'Invalid owner address' });
+    }
+    const tokenContract = contractInstances.DTAIOCToken;
+    if (!tokenContract) {
+      return res.status(500).json({ error: 'Token contract not initialized' });
+    }
+    const balance = await tokenContract.balanceOf(owner);
+    res.json({ balance: ethers.utils.formatUnits(balance, 18) });
+  } catch (error) {
+    console.error('Error in /balanceOf:', error.message);
+    res.status(500).json({ error: 'Failed to fetch balance' });
+  }
+});
+
+// Twitter integration endpoints
+app.post('/basenames/link', async (req, res) => {
+  const { username } = req.body;
+  if (!username) {
+    return res.status(400).json({ error: 'Username required' });
+  }
+  try {
+    const userResult = await pool.query(
+      'SELECT access_token, refresh_token, expires_at FROM users WHERE username = $1',
+      [username]
+    );
+    if (userResult.rows.length === 0) {
+      return res.status(401).json({ error: 'User not authenticated. Please authenticate via /auth/login' });
+    }
+    let { access_token, refresh_token, expires_at } = userResult.rows[0];
+    if (new Date() > expires_at) {
+      access_token = await refreshUserToken(username, refresh_token);
+    }
+    const userClient = new TwitterApi(access_token);
+    const userResponse = await userClient.v2.userByUsername(username);
+    const userId = userResponse.data.id;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID not found' });
+    }
+    const tweetsResponse = await userClient.v2.userTimeline(userId, { max_results: 100 });
+    const tweets = [];
+    for await (const tweet of tweetsResponse) {
+      tweets.push({ id: tweet.id, text: tweet.text, created_at: tweet.created_at });
+    }
+    res.json({ data: tweets });
+  } catch (error) {
+    console.error('Error in /basenames/link:', error.message);
+    res.status(error.status || 500).json({ error: 'Failed to fetch tweets' });
+  }
+});
+
+app.post('/questions/generate', async (req, res) => {
+  const { tweets } = req.body;
+  if (!tweets || !Array.isArray(tweets)) {
+    return res.status(400).json({ error: 'Tweets array required' });
+  }
+  try {
+    const tempFilePath = '/tmp/tweets.json';
+    fs.writeFileSync(tempFilePath, JSON.stringify({ tweets }));
+    console.log('Executing question_generator.py with file:', tempFilePath);
+    const { stdout, stderr } = await execPromise(`python ai/question_generator.py ${tempFilePath}`);
+    if (stderr) console.error('Question generator stderr:', stderr);
+    const questions = JSON.parse(stdout);
+    if (!Array.isArray(questions) || questions.length === 0) {
+      throw new Error('No questions generated');
+    }
+    res.json({ questions });
+  } catch (error) {
+    console.error('Error in /questions/generate:', error.message);
+    res.status(500).json({ error: 'Failed to generate questions' });
+  }
+});
+
+app.get('/questions/backup', async (req, res) => {
+  try {
+    const questions = [
+      {
+        question: "What is the capital of France?",
+        options: ["Paris", "London", "Berlin", "Madrid"],
+        correctAnswer: "Paris",
+        hash: ethers.utils.keccak256(ethers.utils.toUtf8Bytes("What is the capital of France?"))
+      },
+      {
+        question: "Who invented the light bulb?",
+        options: ["Thomas Edison", "Nikola Tesla", "Albert Einstein", "Isaac Newton"],
+        correctAnswer: "Thomas Edison",
+        hash: ethers.utils.keccak256(ethers.utils.toUtf8Bytes("Who invented the light bulb?"))
+      }
+    ];
+    res.json({ questions });
+  } catch (error) {
+    console.error('Error in /questions/backup:', error.message);
+    res.status(500).json({ error: 'Failed to fetch backup questions' });
+  }
+});
+
 // Game endpoints
-/**
- * @swagger
- * /games:
- *   get:
- *     summary: List all games
- *     description: Retrieves a list of all games in the database.
- *     responses:
- *       200:
- *         description: List of games
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                   basename:
- *                     type: string
- *                   created_at:
- *                     type: string
- *                   end_time:
- *                     type: string
- *                   duration:
- *                     type: integer
- *                   status:
- *                     type: string
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 app.get('/games', async (req, res) => {
   try {
     console.log('Fetching all games');
@@ -414,73 +328,11 @@ app.get('/games', async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /games:
- *   post:
- *     summary: Create a new game
- *     description: Creates a game with questions generated from the user's tweets or backup data. Requires OAuth2 authentication.
- *     security:
- *       - oauth2: ['tweet.read', 'users.read', 'offline.access']
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - basename
- *               - stakeAmount
- *               - playerLimit
- *               - duration
- *               - username
- *             properties:
- *               basename:
- *                 type: string
- *                 description: Basename for the game
- *               stakeAmount:
- *                 type: number
- *                 description: Amount to stake
- *               playerLimit:
- *                 type: integer
- *                 description: Maximum number of players
- *               duration:
- *                 type: integer
- *                 description: Game duration in seconds
- *               username:
- *                 type: string
- *                 description: Username of the creator
- *     responses:
- *       200:
- *         description: Game created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Game'
- *       400:
- *         description: Invalid request
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: User not authenticated
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Server error or rate limit exceeded
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 app.post('/games', async (req, res) => {
   const { basename, stakeAmount, playerLimit, duration, username } = req.body;
-  if (!username) {
-    console.error('Games endpoint error: Username is required');
-    return res.status(400).json({ error: 'Username is required' });
+  if (!username || !basename || !stakeAmount || !playerLimit || !duration) {
+    console.error('Games endpoint error: Missing required parameters');
+    return res.status(400).json({ error: 'Username, basename, stakeAmount, playerLimit, and duration are required' });
   }
   let accessToken;
   try {
@@ -557,7 +409,7 @@ app.post('/games', async (req, res) => {
     }
   }
   try {
-    console.log('Executing question_generator Ley with file:', tempFilePath);
+    console.log('Executing question_generator.py with file:', tempFilePath);
     const { stdout, stderr } = await execPromise(`python ai/question_generator.py ${tempFilePath}`);
     if (stderr) console.error('Question generator stderr:', stderr);
     console.log('Question generator stdout:', stdout);
@@ -584,7 +436,13 @@ app.post('/games', async (req, res) => {
     console.log('Uploading questions to Pinata');
     const pinataResult = await pinata.upload.json({ questions });
     console.log('Pinata upload successful, CID:', pinataResult.IpfsHash);
-    res.json({ gameId, questionHashes, ipfsCid: pinataResult.IpfsHash });
+    // Interact with DTAIOCGame contract
+    const signer = new ethers.Wallet(process.env.SIGNER_PRIVATE_KEY, provider);
+    const gameContract = contractInstances.DTAIOCGame.connect(signer);
+    const tx = await gameContract.createGame(signer.address, stakeAmount, playerLimit, duration);
+    const receipt = await tx.wait();
+    const blockchainGameId = receipt.events?.find(e => e.event === 'GameCreated')?.args?.gameId;
+    res.json({ gameId, questionHashes, ipfsCid: pinataResult.IpfsHash, blockchainGameId: blockchainGameId?.toString() });
   } catch (error) {
     console.error('Error in /games endpoint:', error.message, error.stack);
     res.status(500).json({
@@ -595,68 +453,6 @@ app.post('/games', async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /games/{gameId}/join:
- *   post:
- *     summary: Join an active game
- *     description: Allows an authenticated user to join an active game if slots are available. Requires OAuth2 authentication.
- *     security:
- *       - oauth2: ['users.read']
- *     parameters:
- *       - in: path
- *         name: gameId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID of the game
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - username
- *             properties:
- *               username:
- *                 type: string
- *                 description: Username of the player
- *     responses:
- *       200:
- *         description: Successfully joined game
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *       400:
- *         description: Invalid request or game not active
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: User not authenticated
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Game full or user already joined
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 app.post('/games/:gameId/join', async (req, res) => {
   const { gameId } = req.params;
   const { username } = req.body;
@@ -700,72 +496,6 @@ app.post('/games/:gameId/join', async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /games/{gameId}/submit:
- *   post:
- *     summary: Submit answers for a game
- *     description: Submits answers for a game stage and calculates the score. Requires OAuth2 authentication.
- *     security:
- *       - oauth2: ['users.read']
- *     parameters:
- *       - in: path
- *         name: gameId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID of the game
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - username
- *               - stage
- *               - answerHashes
- *             properties:
- *               username:
- *                 type: string
- *                 description: Username of the player
- *               stage:
- *                 type: integer
- *                 description: Game stage
- *               answerHashes:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Hashes of selected answers
- *     responses:
- *       200:
- *         description: Answers submitted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 score:
- *                   type: integer
- *       400:
- *         description: Invalid request or game not active
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: User not authenticated or not joined
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 app.post('/games/:gameId/submit', async (req, res) => {
   const { gameId } = req.params;
   const { username, stage, answerHashes } = req.body;
@@ -813,35 +543,6 @@ app.post('/games/:gameId/submit', async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /games/{gameId}/questions:
- *   get:
- *     summary: Fetch game questions
- *     description: Retrieves questions for a specific game.
- *     parameters:
- *       - in: path
- *         name: gameId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID of the game
- *     responses:
- *       200:
- *         description: List of questions
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Question'
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 app.get('/games/:gameId/questions', async (req, res) => {
   const { gameId } = req.params;
   try {
@@ -854,41 +555,6 @@ app.get('/games/:gameId/questions', async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /games/{gameId}/leaderboard:
- *   get:
- *     summary: Fetch game leaderboard
- *     description: Retrieves the leaderboard for a specific game.
- *     parameters:
- *       - in: path
- *         name: gameId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID of the game
- *     responses:
- *       200:
- *         description: Leaderboard entries
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/LeaderboardEntry'
- *       400:
- *         description: Game not found
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Server error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 app.get('/games/:gameId/leaderboard', async (req, res) => {
   const { gameId } = req.params;
   try {
@@ -908,66 +574,6 @@ app.get('/games/:gameId/leaderboard', async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /games/{gameId}/mint:
- *   post:
- *     summary: Mint DTAIOC tokens for a game
- *     description: Mints up to 100 DTAIOC tokens to the user's wallet if they are in the top 3 leaderboard. Requires OAuth2 authentication.
- *     security:
- *       - oauth2: ['users.read']
- *     parameters:
- *       - in: path
- *         name: gameId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID of the game
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - username
- *               - amount
- *             properties:
- *               username:
- *                 type: string
- *                 description: Username of the player
- *               amount:
- *                 type: number
- *                 description: Amount of DTAIOC tokens to mint (max 100 per transaction)
- *     responses:
- *       200:
- *         description: Tokens minted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 transactionHash:
- *                   type: string
- *       400:
- *         description: Invalid request, amount too high, or minting paused
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: User not authenticated or not eligible
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Server or blockchain error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 app.post('/games/:gameId/mint', async (req, res) => {
   const { gameId } = req.params;
   const { username, amount } = req.body;
@@ -976,20 +582,15 @@ app.post('/games/:gameId/mint', async (req, res) => {
     return res.status(400).json({ error: 'Username and amount are required' });
   }
   try {
-    // Validate environment variables
     if (!process.env.SIGNER_PRIVATE_KEY) {
       throw new Error('SIGNER_PRIVATE_KEY environment variable is not set');
     }
-
-    // Validate user and wallet
     const userResult = await pool.query('SELECT wallet_address FROM users WHERE username = $1', [username]);
     if (userResult.rows.length === 0 || !userResult.rows[0].wallet_address) {
       console.error(`Mint endpoint error: User ${username} not authenticated or no wallet address`);
-      return res.status(401).json({ error: 'User not authenticated or no wallet address set. Please authenticate via /auth/login and set wallet address' });
+      return res.status(401).json({ error: 'User not authenticated or no wallet address set' });
     }
     const walletAddress = userResult.rows[0].wallet_address;
-
-    // Validate game
     const gameResult = await pool.query('SELECT end_time FROM games WHERE id = $1', [gameId]);
     if (gameResult.rows.length === 0) {
       console.error(`Mint endpoint error: Game ${gameId} not found`);
@@ -1000,8 +601,6 @@ app.post('/games/:gameId/mint', async (req, res) => {
       console.error(`Mint endpoint error: Game ${gameId} has not ended`);
       return res.status(400).json({ error: 'Game has not ended' });
     }
-
-    // Validate leaderboard eligibility
     const leaderboardResult = await pool.query(
       'SELECT username FROM (SELECT username, MAX(score) as score FROM submissions WHERE game_id = $1 GROUP BY username ORDER BY score DESC LIMIT 3) as top WHERE username = $2',
       [gameId, username]
@@ -1010,43 +609,29 @@ app.post('/games/:gameId/mint', async (req, res) => {
       console.error(`Mint endpoint error: User ${username} is not eligible to mint`);
       return res.status(401).json({ error: 'User is not eligible to mint tokens' });
     }
-
-    // Validate token contract
     const tokenContract = contractInstances.DTAIOCToken;
     if (!tokenContract) {
       console.error('Mint endpoint error: DTAIOCToken contract not initialized');
       return res.status(500).json({ error: 'Token contract not initialized' });
     }
-
-    // Check minting paused
     const isPaused = await tokenContract.mintingPaused();
     if (isPaused) {
       console.error('Mint endpoint error: Minting is paused');
       return res.status(400).json({ error: 'Minting is paused on the contract' });
     }
-
-    // Check per-transaction mint limit
-    const MAX_MINT_PER_TX = 100; // 100 DTAIOC
+    const MAX_MINT_PER_TX = 100;
     if (amount > MAX_MINT_PER_TX) {
       console.error(`Mint endpoint error: Amount exceeds max mint per transaction for ${username}`);
       return res.status(400).json({
-        error: `Cannot mint ${amount} DTAIOC: exceeds max mint per transaction (${MAX_MINT_PER_TX} DTAIOC).`,
-        suggestion: 'Reduce the amount to 100 DTAIOC or less.'
+        error: `Cannot mint ${amount} DTAIOC: exceeds max mint per transaction (${MAX_MINT_PER_TX} DTAIOC)`,
+        suggestion: 'Reduce the amount to 100 DTAIOC or less'
       });
     }
-
-    // Initialize signer
     const signer = new ethers.Wallet(process.env.SIGNER_PRIVATE_KEY, provider);
     console.log(`Signer initialized for address: ${await signer.getAddress()}`);
-
-    // Connect contract with signer
     const tokenContractWithSigner = tokenContract.connect(signer);
-
-    // Estimate gas
     const gasLimit = await tokenContractWithSigner.estimateGas.mint(ethers.utils.parseUnits(amount.toString(), 18));
     console.log(`Estimated gas limit: ${gasLimit.toString()}`);
-
-    // Mint tokens with optimized gas
     console.log(`Submitting transaction for ${username} to mint ${amount} DTAIOC tokens to ${walletAddress}`);
     const tx = await tokenContractWithSigner.mint(ethers.utils.parseUnits(amount.toString(), 18), {
       gasLimit: gasLimit.mul(12).div(10), // 20% buffer
@@ -1062,66 +647,6 @@ app.post('/games/:gameId/mint', async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /games/{gameId}/mint-tokens:
- *   post:
- *     summary: Alias for minting DTAIOC tokens
- *     description: Redirects to /games/{gameId}/mint. Mints up to 100 DTAIOC tokens if in top 3 leaderboard. Requires OAuth2 authentication.
- *     security:
- *       - oauth2: ['users.read']
- *     parameters:
- *       - in: path
- *         name: gameId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID of the game
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - username
- *               - amount
- *             properties:
- *               username:
- *                 type: string
- *                 description: Username of the player
- *               amount:
- *                 type: number
- *                 description: Amount of DTAIOC tokens to mint (max 100 per transaction)
- *     responses:
- *       200:
- *         description: Tokens minted successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 transactionHash:
- *                   type: string
- *       400:
- *         description: Invalid request, amount too high, or minting paused
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       401:
- *         description: User not authenticated or not eligible
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- *       500:
- *         description: Server or blockchain error
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
- */
 app.post('/games/:gameId/mint-tokens', async (req, res) => {
   const { gameId } = req.params;
   console.log(`Redirecting /games/${gameId}/mint-tokens to /games/${gameId}/mint`);
