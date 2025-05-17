@@ -207,48 +207,6 @@
         }
       }
     },
-    "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/balanceOf": {
-      "get": {
-        "summary": "Call DTAIOCToken.balanceOf",
-        "description": "Retrieve the token balance of an account from the DTAIOCToken contract.",
-        "parameters": [
-          {
-            "in": "query",
-            "name": "account",
-            "schema": {
-              "type": "string",
-              "pattern": "^0x[a-fA-F0-9]{40}$"
-            },
-            "required": true,
-            "description": "The address of the account."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "balance": {
-                      "type": "string",
-                      "description": "The token balance of the account (uint256)."
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "500": {
-            "description": "Server error"
-          }
-        }
-      }
-    },
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/decimals": {
       "get": {
         "summary": "Call DTAIOCToken.decimals",
@@ -3342,42 +3300,6 @@
         }
       }
     },
-    "/questions/backup": {
-      "get": {
-        "summary": "Retrieve backup questions",
-        "description": "Fetches pre-stored backup questions for use when Twitter-based generation fails.",
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "questions": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "question": { "type": "string" },
-                          "options": {
-                            "type": "array",
-                            "items": { "type": "string" }
-                          },
-                          "correctAnswer": { "type": "string" }
-                        }
-                      },
-                      "description": "Array of backup questions"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "500": { "description": "Server error" }
-        }
-      }
-    },
     "/contract/0xB0f1D7Cf1821557271C01F2e560d3B397Fe9ed3c/mint": {
       "post": {
         "summary": "Call DTAIOCToken.mint",
@@ -3521,60 +3443,6 @@
         }
       }
     },
-    "/questions/generate": {
-      "post": {
-        "summary": "Generate trivia questions from tweets",
-        "description": "Generates trivia questions based on provided tweets using an AI model.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "tweets": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "text": { "type": "string" }
-                      }
-                    }
-                  }
-                },
-                "required": ["tweets"]
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Success",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "questions": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "question": { "type": "string" },
-                          "options": { "type": "array", "items": { "type": "string" } },
-                          "correctAnswer": { "type": "string" }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": { "description": "Invalid input" },
-          "500": { "description": "Server error" }
-        }
-      }
-    },
     "/questions/backup": {
       "get": {
         "summary": "Retrieve backup questions",
@@ -3647,7 +3515,106 @@
           "500": { "description": "Server error" }
         }
       }
+    },
+    "/contract/{contractAddress}/balanceOf": {
+      "get": {
+        "summary": "Get token balance for an address",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "contractAddress",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "in": "query",
+            "name": "address",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token balance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "balance": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid address" },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
+    "/basenames/resolve": {
+      "get": {
+        "summary": "Resolve basename for an address",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "address",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Basename",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "basename": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid address" },
+          "404": { "description": "No basename found" },
+          "500": { "description": "Server error" }
+        }
+      }
+    },
+    "/basenames/twitter": {
+      "get": {
+        "summary": "Get Twitter username for an address",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "address",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Twitter username",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "Invalid address" },
+          "404": { "description": "No Twitter username found" },
+          "500": { "description": "Server error" }
+        }
+      }
     }
   }
 }
+  
   

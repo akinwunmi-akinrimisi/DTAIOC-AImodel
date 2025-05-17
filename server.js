@@ -215,21 +215,65 @@ app.get('/auth/callback', async (req, res) => {
 });
 
 // Smart contract endpoints
-app.get('/contract/0x6A9cA2919e53Ea03e6137CA0336064B0287Ff1Fb/balanceOf', async (req, res) => {
+app.get('/contract/:contractAddress/balanceOf', async (req, res) => {
   try {
-    const { owner } = req.query;
-    if (!owner || !/^0x[a-fA-F0-9]{40}$/.test(owner)) {
-      return res.status(400).json({ error: 'Invalid owner address' });
+    const { contractAddress } = req.params;
+    const { address } = req.query;
+    if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      return res.status(400).json({ error: 'Invalid address' });
     }
-    const tokenContract = contractInstances.DTAIOCToken;
-    if (!tokenContract) {
-      return res.status(500).json({ error: 'Token contract not initialized' });
-    }
-    const balance = await tokenContract.balanceOf(owner);
+    const tokenContract = new ethers.Contract(
+      contractAddress,
+      abis.DTAIOCToken,
+      provider
+    );
+    const balance = await tokenContract.balanceOf(address);
     res.json({ balance: ethers.utils.formatUnits(balance, 18) });
   } catch (error) {
-    console.error('Error in /balanceOf:', error.message);
+    console.error('Error in /contract/:contractAddress/balanceOf:', error.message);
     res.status(500).json({ error: 'Failed to fetch balance' });
+  }
+});
+
+// Basename endpoints
+app.get('/basenames/resolve', async (req, res) => {
+  try {
+    const { address } = req.query;
+    if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      return res.status(400).json({ error: 'Invalid address' });
+    }
+    const basenameResolver = contractInstances.IBasenameResolver;
+    if (!basenameResolver) {
+      return res.status(500).json({ error: 'Basename resolver contract not initialized' });
+    }
+    const basename = await basenameResolver.getBasename(address);
+    if (!basename) {
+      return res.status(404).json({ error: 'No basename found for address' });
+    }
+    res.json({ basename });
+  } catch (error) {
+    console.error('Error in /basenames/resolve:', error.message);
+    res.status(500).json({ error: 'Failed to resolve basename' });
+  }
+});
+
+app.get('/basenames/twitter', async (req, res) => {
+  try {
+    const { address } = req.query;
+    if (!address || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      return res.status(400).json({ error: 'Invalid address' });
+    }
+    const userResult = await pool.query(
+      'SELECT username FROM users WHERE wallet_address = $1',
+      [address]
+    );
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'No Twitter username found for address' });
+    }
+    res.json({ username: userResult.rows[0].username });
+  } catch (error) {
+    console.error('Error in /basenames/twitter:', error.message);
+    res.status(500).json({ error: 'Failed to fetch Twitter username' });
   }
 });
 
@@ -276,7 +320,7 @@ app.post('/questions/generate', async (req, res) => {
   }
   try {
     const tempFilePath = '/tmp/tweets.json';
-    fs.writeFileSync(tempFilePath, JSON.stringify({ tweets }));
+    fs.writeFileSync(tempFilePath, JSON.stringify({ tweets, username: 'unknown' }));
     console.log('Executing question_generator.py with file:', tempFilePath);
     const { stdout, stderr } = await execPromise(`python ai/question_generator.py ${tempFilePath}`);
     if (stderr) console.error('Question generator stderr:', stderr);
@@ -297,13 +341,13 @@ app.get('/questions/backup', async (req, res) => {
       {
         question: "What is the capital of France?",
         options: ["Paris", "London", "Berlin", "Madrid"],
-        correctAnswer: "Paris",
+        correct_answer: "Paris",
         hash: ethers.utils.keccak256(ethers.utils.toUtf8Bytes("What is the capital of France?"))
       },
       {
         question: "Who invented the light bulb?",
         options: ["Thomas Edison", "Nikola Tesla", "Albert Einstein", "Isaac Newton"],
-        correctAnswer: "Thomas Edison",
+        correct_answer: "Thomas Edison",
         hash: ethers.utils.keccak256(ethers.utils.toUtf8Bytes("Who invented the light bulb?"))
       }
     ];
@@ -436,7 +480,6 @@ app.post('/games', async (req, res) => {
     console.log('Uploading questions to Pinata');
     const pinataResult = await pinata.upload.json({ questions });
     console.log('Pinata upload successful, CID:', pinataResult.IpfsHash);
-    // Interact with DTAIOCGame contract
     const signer = new ethers.Wallet(process.env.SIGNER_PRIVATE_KEY, provider);
     const gameContract = contractInstances.DTAIOCGame.connect(signer);
     const tx = await gameContract.createGame(signer.address, stakeAmount, playerLimit, duration);
